@@ -1,16 +1,59 @@
-# React + Vite
+# Анкеты учеников
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Веб-приложение для размещения анкет учеников с системой рейтинга, достижений и личными кабинетами.
 
-Currently, two official plugins are available:
+## 🚀 Демо
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Live Demo:** https://stiapanreha-dev.github.io/yaminecraft-students/
 
-## React Compiler
+## 🔑 Админ-доступ
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Email:** admin@yaminecraft.local
+- **Пароль:** admin123456
 
-## Expanding the ESLint configuration
+## 📝 Как добавлять учеников
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Вариант 1: Самостоятельная регистрация
+1. Ученик заходит на сайт
+2. Нажимает "Регистрация"
+3. Заполняет форму
+4. Автоматически получает роль "student"
+
+### Вариант 2: Через админ-панель
+1. Войди под админом
+2. Перейди в "Админ-панель"
+3. Вкладка "Пользователи" - управление ролями
+
+### Вариант 3: Создать админа через скрипт
+```bash
+npm run create-admin
+```
+
+## 🏆 Добавление достижений
+
+1. Войди в админ-панель (admin@yaminecraft.local)
+2. Вкладка "Достижения"
+3. Заполни форму:
+   - Выбери ученика
+   - Категория (спорт/учёба/творчество/волонтёрство)
+   - Описание
+   - Баллы (1-1000)
+   - Дата
+
+Баллы автоматически добавятся в рейтинг!
+
+## 🛠 Разработка
+
+```bash
+npm install
+npm run dev
+npm run deploy
+```
+
+## 📁 Структура
+
+- `src/components/` - UI компоненты
+- `src/pages/` - Страницы
+- `src/services/` - Firebase, Firestore, MinIO
+- `src/hooks/` - Хуки (useAuth, useStudents, useRating)
+- `scripts/` - Утилиты (createAdmin.js)
