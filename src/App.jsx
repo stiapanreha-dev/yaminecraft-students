@@ -1,66 +1,79 @@
-import { useEffect } from 'react';
-import useAuthStore from './store/authStore';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from '@/components/ui/sonner';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { ProtectedRoute, AdminRoute } from '@/components/ProtectedRoute';
+
+// Pages
+import { HomePage } from '@/pages/HomePage';
+import { AboutPage } from '@/pages/AboutPage';
+import { EventsPage } from '@/pages/EventsPage';
+import { RatingPage } from '@/pages/RatingPage';
+import { ProfilePage } from '@/pages/ProfilePage';
+import { DashboardPage } from '@/pages/DashboardPage';
+import { AdminPage } from '@/pages/AdminPage';
+import { LoginPage } from '@/pages/LoginPage';
 
 function App() {
-  const { user, userProfile, loading, initAuth } = useAuthStore();
-
-  useEffect(() => {
-    initAuth();
-  }, [initAuth]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Загрузка...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Анкеты учеников
-          </h1>
-        </div>
-      </header>
-      <main>
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <div className="border-4 border-dashed border-gray-200 rounded-lg p-8">
-              <h2 className="text-xl font-semibold mb-4">
-                Добро пожаловать!
-              </h2>
-              {user ? (
-                <div>
-                  <p className="text-gray-700">
-                    Вы вошли как: <strong>{user.email}</strong>
-                  </p>
-                  {userProfile && (
-                    <p className="text-gray-600 mt-2">
-                      Роль: <span className="capitalize">{userProfile.role}</span>
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-gray-700">
-                  Проект успешно инициализирован!
-                </p>
-              )}
-              <div className="mt-6">
-                <p className="text-sm text-gray-500">
-                  React + Vite + Tailwind CSS + Firebase + MinIO
-                </p>
-              </div>
-            </div>
+    <BrowserRouter basename="/yaminecraft">
+      <div className="min-h-screen flex flex-col">
+        {/* Header */}
+        <Header />
+
+        {/* Main Content */}
+        <main className="flex-1">
+          <div className="container mx-auto px-4 py-8">
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/rating" element={<RatingPage />} />
+              <Route path="/profile/:userId" element={<ProfilePage />} />
+              <Route path="/login" element={<LoginPage />} />
+
+              {/* Protected Routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminPage />
+                  </AdminRoute>
+                }
+              />
+
+              {/* 404 */}
+              <Route
+                path="*"
+                element={
+                  <div className="text-center py-12">
+                    <h1 className="text-4xl font-bold mb-4">404</h1>
+                    <p className="text-muted-foreground">Страница не найдена</p>
+                  </div>
+                }
+              />
+            </Routes>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+
+        {/* Footer */}
+        <Footer />
+
+        {/* Toast Notifications */}
+        <Toaster />
+      </div>
+    </BrowserRouter>
   );
 }
 
