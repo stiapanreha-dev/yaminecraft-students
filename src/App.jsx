@@ -16,7 +16,7 @@ import { LoginPage } from '@/pages/LoginPage';
 
 function App() {
   return (
-    <BrowserRouter basename="/yaminecraft">
+    <BrowserRouter basename="/yaminecraft-students">
       <div className="min-h-screen flex flex-col">
         {/* Header */}
         <Header />
