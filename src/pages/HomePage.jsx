@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Calendar, Users, TrendingUp } from 'lucide-react';
 import { useStudents } from '@/hooks/useStudents';
 import { StudentCard } from '@/components/student/StudentCard';
+import { useAuth } from '@/hooks/useAuth';
 
 export const HomePage = () => {
   const { students, loading } = useStudents({ limitCount: 6, sortBy: 'createdAt' });
+  const { isAuthenticated } = useAuth();
   const features = [
     {
       icon: Trophy,
@@ -164,19 +166,21 @@ export const HomePage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-primary/5 rounded-lg p-8 md:p-12 text-center space-y-4">
-        <h2 className="text-2xl md:text-3xl font-bold">
-          Готовы начать?
-        </h2>
-        <p className="text-muted-foreground max-w-xl mx-auto">
-          Присоединяйтесь к нашей платформе и начните отслеживать достижения учеников
-        </p>
-        <Link to="/login">
-          <Button size="lg" className="mt-4">
-            Войти в систему
-          </Button>
-        </Link>
-      </section>
+      {!isAuthenticated && (
+        <section className="bg-primary/5 rounded-lg p-8 md:p-12 text-center space-y-4">
+          <h2 className="text-2xl md:text-3xl font-bold">
+            Готовы начать?
+          </h2>
+          <p className="text-muted-foreground max-w-xl mx-auto">
+            Присоединяйтесь к нашей платформе и начните отслеживать достижения учеников
+          </p>
+          <Link to="/login">
+            <Button size="lg" className="mt-4">
+              Войти в систему
+            </Button>
+          </Link>
+        </section>
+      )}
     </div>
   );
 };
