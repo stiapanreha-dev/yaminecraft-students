@@ -156,11 +156,13 @@ export const HomePage = () => {
             <p className="text-muted-foreground">
               Пока нет зарегистрированных учеников
             </p>
-            <Link to="/login">
-              <Button className="mt-4">
-                Зарегистрироваться
-              </Button>
-            </Link>
+            {!isAuthenticated && (
+              <Link to="/login">
+                <Button className="mt-4">
+                  Зарегистрироваться
+                </Button>
+              </Link>
+            )}
           </div>
         )}
       </section>
