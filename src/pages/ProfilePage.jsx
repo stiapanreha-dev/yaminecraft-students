@@ -26,17 +26,23 @@ export const ProfilePage = () => {
       setLoading(true);
       setError(null);
 
+      console.log('Fetching profile for userId:', userId);
+
       // Загружаем данные ученика и его достижения параллельно
       const [studentData, achievementsData] = await Promise.all([
         getUserById(userId),
         getAchievementsByUserId(userId)
       ]);
 
+      console.log('Student data:', studentData);
+      console.log('Achievements data:', achievementsData);
+
       setStudent(studentData);
       setAchievements(achievementsData);
     } catch (err) {
       console.error('Error fetching profile data:', err);
-      setError('Не удалось загрузить профиль ученика');
+      console.error('Error details:', err.message);
+      setError(`Не удалось загрузить профиль ученика: ${err.message}`);
     } finally {
       setLoading(false);
     }

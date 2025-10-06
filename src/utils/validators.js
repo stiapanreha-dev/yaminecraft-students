@@ -112,6 +112,7 @@ export const studentProfileSchema = z.object({
  * Схема валидации для достижения
  */
 export const achievementSchema = z.object({
+  userId: z.string().min(1, 'Выберите ученика'),
   title: z
     .string()
     .min(3, 'Минимум 3 символа')

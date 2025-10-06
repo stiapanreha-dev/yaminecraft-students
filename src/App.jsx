@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { AuthProvider } from '@/components/AuthProvider';
 import { ProtectedRoute, AdminRoute } from '@/components/ProtectedRoute';
 
 // Pages
@@ -17,9 +18,10 @@ import { LoginPage } from '@/pages/LoginPage';
 function App() {
   return (
     <BrowserRouter basename="/yaminecraft-students">
-      <div className="min-h-screen flex flex-col">
-        {/* Header */}
-        <Header />
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col">
+          {/* Header */}
+          <Header />
 
         {/* Main Content */}
         <main className="flex-1">
@@ -70,9 +72,10 @@ function App() {
         {/* Footer */}
         <Footer />
 
-        {/* Toast Notifications */}
-        <Toaster />
-      </div>
+          {/* Toast Notifications */}
+          <Toaster />
+        </div>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

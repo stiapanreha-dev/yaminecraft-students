@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,30 +8,28 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { UserManager } from '@/components/admin/UserManager';
 import { AchievementForm } from '@/components/admin/AchievementForm';
 import { EventForm } from '@/components/admin/EventForm';
-import { Users, Award, Calendar, Plus } from 'lucide-react';
-import { getAllUsers, updateUser, createAchievement, createEvent } from '@/services/firestore';
+import { Users, Award, Calendar, Plus, Pencil, Trash2 } from 'lucide-react';
+import { getAllUsers, updateUser, createAchievement, createEvent, deleteAchievement, deleteEvent, updateAchievement, updateEvent } from '@/services/firestore';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '@/services/firebase';
 import { toast } from 'sonner';
 
 export const AdminPage = () => {
-  const { isAdmin } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [achievements, setAchievements] = useState([]);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Dialog states
   const [achievementDialogOpen, setAchievementDialogOpen] = useState(false);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [editingAchievement, setEditingAchievement] = useState(null);
+  const [editingEvent, setEditingEvent] = useState(null);
 
-  useEffect(() => {
-    if (!isAdmin()) {
-      navigate('/');
-      return;
-    }
-    fetchUsers();
-  }, [isAdmin, navigate]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getAllUsers();
@@ -42,7 +40,46 @@ export const AdminPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const fetchAchievements = useCallback(async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'achievements'));
+      const achievementsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setAchievements(achievementsData);
+    } catch (error) {
+      console.error('Error fetching achievements:', error);
+    }
+  }, []);
+
+  const fetchEvents = useCallback(async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'events'));
+      const eventsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setEvents(eventsData);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authLoading) return; // Wait for auth to load
+
+    if (!user || user.role !== 'admin') {
+      navigate('/');
+      return;
+    }
+
+    fetchUsers();
+    fetchAchievements();
+    fetchEvents();
+  }, [authLoading, user?.uid, user?.role, fetchUsers, fetchAchievements, fetchEvents, navigate]);
 
   const handleChangeRole = async (userId, newRole) => {
     try {
@@ -62,35 +99,141 @@ export const AdminPage = () => {
   const handleCreateAchievement = async (data) => {
     try {
       setSubmitLoading(true);
-      await createAchievement(data);
-      toast.success('Достижение успешно создано');
+
+      if (editingAchievement) {
+        // Обновляем существующее достижение
+        await updateAchievement(editingAchievement.id, data);
+        toast.success('Достижение успешно обновлено');
+      } else {
+        // Создаем новое достижение
+        await createAchievement(data);
+
+      // Обновляем рейтинг пользователя
+      const { getRatingByUserId, updateRating } = await import('@/services/firestore');
+      const currentRating = await getRatingByUserId(data.userId);
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const achievementDate = new Date(data.date);
+      const achievementYear = achievementDate.getFullYear();
+      const achievementMonth = achievementDate.getMonth();
+
+      const newRating = {
+        userId: data.userId,
+        totalPoints: (currentRating?.totalPoints || 0) + data.points,
+        yearPoints: achievementYear === currentYear
+          ? (currentRating?.yearPoints || 0) + data.points
+          : (currentRating?.yearPoints || 0),
+        monthPoints: achievementYear === currentYear && achievementMonth === currentMonth
+          ? (currentRating?.monthPoints || 0) + data.points
+          : (currentRating?.monthPoints || 0),
+        breakdown: {
+          sport: (currentRating?.breakdown?.sport || 0) + (data.category === 'sport' ? data.points : 0),
+          study: (currentRating?.breakdown?.study || 0) + (data.category === 'study' ? data.points : 0),
+          creativity: (currentRating?.breakdown?.creativity || 0) + (data.category === 'creativity' ? data.points : 0),
+          volunteer: (currentRating?.breakdown?.volunteer || 0) + (data.category === 'volunteer' ? data.points : 0),
+        }
+      };
+
+        await updateRating(data.userId, newRating);
+
+        toast.success('Достижение успешно создано');
+      }
+
       setAchievementDialogOpen(false);
+      setEditingAchievement(null);
+      fetchAchievements(); // Обновляем список
     } catch (error) {
-      console.error('Error creating achievement:', error);
-      toast.error('Ошибка создания достижения');
+      console.error('Error with achievement:', error);
+      toast.error(editingAchievement ? 'Ошибка обновления достижения' : 'Ошибка создания достижения');
     } finally {
       setSubmitLoading(false);
     }
+  };
+
+  const handleDeleteAchievement = async (achievementId) => {
+    if (!confirm('Вы уверены что хотите удалить это достижение?')) return;
+
+    try {
+      await deleteAchievement(achievementId);
+      toast.success('Достижение удалено');
+      fetchAchievements();
+    } catch (error) {
+      console.error('Error deleting achievement:', error);
+      toast.error('Ошибка удаления достижения');
+    }
+  };
+
+  const handleEditAchievement = (achievement) => {
+    // Преобразуем данные для формы
+    const formData = {
+      ...achievement,
+      date: achievement.date?.toDate ? achievement.date.toDate() : new Date(achievement.date)
+    };
+    setEditingAchievement(formData);
+    setAchievementDialogOpen(true);
   };
 
   const handleCreateEvent = async (data) => {
     try {
       setSubmitLoading(true);
-      await createEvent(data);
-      toast.success('Мероприятие успешно создано');
+
+      if (editingEvent) {
+        await updateEvent(editingEvent.id, data);
+        toast.success('Мероприятие успешно обновлено');
+      } else {
+        await createEvent(data);
+        toast.success('Мероприятие успешно создано');
+      }
+
       setEventDialogOpen(false);
+      setEditingEvent(null);
+      fetchEvents(); // Обновляем список
     } catch (error) {
-      console.error('Error creating event:', error);
-      toast.error('Ошибка создания мероприятия');
+      console.error('Error with event:', error);
+      toast.error(editingEvent ? 'Ошибка обновления мероприятия' : 'Ошибка создания мероприятия');
     } finally {
       setSubmitLoading(false);
     }
   };
 
-  if (!isAdmin()) {
+  const handleDeleteEvent = async (eventId) => {
+    if (!confirm('Вы уверены что хотите удалить это мероприятие?')) return;
+
+    try {
+      await deleteEvent(eventId);
+      toast.success('Мероприятие удалено');
+      fetchEvents();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error('Ошибка удаления мероприятия');
+    }
+  };
+
+  const handleEditEvent = (event) => {
+    // Преобразуем данные для формы
+    const formData = {
+      ...event,
+      date: event.date?.toDate ? event.date.toDate() : new Date(event.date)
+    };
+    setEditingEvent(formData);
+    setEventDialogOpen(true);
+  };
+
+  console.log('AdminPage render:', { authLoading, user, userRole: user?.role });
+
+  if (authLoading) {
+    console.log('Showing loading state');
+    return <div className="text-center py-12">Загрузка...</div>;
+  }
+
+  if (!user || user.role !== 'admin') {
+    console.log('Not admin, returning null');
     return null;
   }
 
+  console.log('Rendering admin panel content');
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -183,12 +326,53 @@ export const AdminPage = () => {
           </div>
           <Card>
             <CardHeader>
-              <CardTitle>Управление достижениями</CardTitle>
+              <CardTitle>Управление достижениями ({achievements.length})</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Список достижений будет отображаться здесь
-              </p>
+              {achievements.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  Нет созданных достижений
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {achievements.map((achievement) => {
+                    const student = users.find(u => u.uid === achievement.userId);
+                    return (
+                      <div key={achievement.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1 flex-1">
+                            <h4 className="font-semibold">{achievement.title}</h4>
+                            <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                            <div className="flex gap-2 text-xs text-muted-foreground">
+                              <span>Ученик: {student ? `${student.profile?.firstName} ${student.profile?.lastName}` : 'Не указан'}</span>
+                              <span>•</span>
+                              <span>Категория: {achievement.category}</span>
+                              <span>•</span>
+                              <span>Баллы: {achievement.points}</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditAchievement(achievement)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteAchievement(achievement.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -203,40 +387,91 @@ export const AdminPage = () => {
           </div>
           <Card>
             <CardHeader>
-              <CardTitle>Управление мероприятиями</CardTitle>
+              <CardTitle>Управление мероприятиями ({events.length})</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Список мероприятий будет отображаться здесь
-              </p>
+              {events.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  Нет созданных мероприятий
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {events.map((event) => (
+                    <div key={event.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1 flex-1">
+                          <h4 className="font-semibold">{event.title}</h4>
+                          <p className="text-sm text-muted-foreground">{event.description}</p>
+                          <div className="flex gap-2 text-xs text-muted-foreground">
+                            <span>Место: {event.location}</span>
+                            <span>•</span>
+                            <span>Дата: {event.date?.toDate?.().toLocaleDateString('ru-RU') || 'Не указана'}</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditEvent(event)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteEvent(event.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
       {/* Achievement Dialog */}
-      <Dialog open={achievementDialogOpen} onOpenChange={setAchievementDialogOpen}>
+      <Dialog open={achievementDialogOpen} onOpenChange={(open) => {
+        setAchievementDialogOpen(open);
+        if (!open) setEditingAchievement(null);
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Добавить достижение</DialogTitle>
+            <DialogTitle>{editingAchievement ? 'Редактировать достижение' : 'Добавить достижение'}</DialogTitle>
           </DialogHeader>
           <AchievementForm
+            students={users}
+            initialData={editingAchievement}
             onSubmit={handleCreateAchievement}
-            onCancel={() => setAchievementDialogOpen(false)}
+            onCancel={() => {
+              setAchievementDialogOpen(false);
+              setEditingAchievement(null);
+            }}
             loading={submitLoading}
           />
         </DialogContent>
       </Dialog>
 
       {/* Event Dialog */}
-      <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
+      <Dialog open={eventDialogOpen} onOpenChange={(open) => {
+        setEventDialogOpen(open);
+        if (!open) setEditingEvent(null);
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Добавить мероприятие</DialogTitle>
+            <DialogTitle>{editingEvent ? 'Редактировать мероприятие' : 'Добавить мероприятие'}</DialogTitle>
           </DialogHeader>
           <EventForm
+            initialData={editingEvent}
             onSubmit={handleCreateEvent}
-            onCancel={() => setEventDialogOpen(false)}
+            onCancel={() => {
+              setEventDialogOpen(false);
+              setEditingEvent(null);
+            }}
             loading={submitLoading}
           />
         </DialogContent>

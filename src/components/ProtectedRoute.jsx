@@ -30,7 +30,10 @@ export const ProtectedRoute = ({ children }) => {
 export const AdminRoute = ({ children }) => {
   const { user, loading, isAdmin } = useAuth();
 
+  console.log('AdminRoute:', { loading, user: !!user, isAdmin: isAdmin() });
+
   if (loading) {
+    console.log('AdminRoute: showing skeleton');
     return (
       <div className="space-y-4 py-8">
         <Skeleton className="h-12 w-full" />
@@ -40,12 +43,15 @@ export const AdminRoute = ({ children }) => {
   }
 
   if (!user) {
+    console.log('AdminRoute: no user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
   if (!isAdmin()) {
+    console.log('AdminRoute: not admin, redirecting to home');
     return <Navigate to="/" replace />;
   }
 
+  console.log('AdminRoute: rendering children');
   return children;
 };

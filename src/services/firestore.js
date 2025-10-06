@@ -108,11 +108,17 @@ export const getUserAchievements = async (userId) => {
 export const getAchievementsByUserId = async (userId) => {
   const q = query(
     collection(db, 'achievements'),
-    where('userId', '==', userId),
-    orderBy('date', 'desc')
+    where('userId', '==', userId)
   );
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const achievements = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  // Сортируем в памяти, чтобы избежать необходимости в Firestore индексе
+  return achievements.sort((a, b) => {
+    const dateA = a.date?.toDate?.() || new Date(a.date);
+    const dateB = b.date?.toDate?.() || new Date(b.date);
+    return dateB - dateA;
+  });
 };
 
 export const updateAchievement = async (achievementId, data) => {

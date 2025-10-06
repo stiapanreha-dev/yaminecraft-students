@@ -15,7 +15,8 @@ import { calculateAge } from '@/utils/dateFormatter';
 export const StudentCard = ({ student, showPoints = false, rank = null }) => {
   if (!student) return null;
 
-  const { profile, uid } = student;
+  const { profile, id, uid } = student;
+  const userId = uid || id;
   const fullName = `${profile.firstName} ${profile.lastName}`;
   const initials = `${profile.firstName?.[0] || ''}${profile.lastName?.[0] || ''}`.toUpperCase();
   const age = profile.birthDate ? calculateAge(profile.birthDate) : null;
@@ -102,7 +103,7 @@ export const StudentCard = ({ student, showPoints = false, rank = null }) => {
             </div>
           )}
         </div>
-        <Link to={`/profile/${uid}`}>
+        <Link to={`/profile/${userId}`}>
           <Button variant="outline" size="sm">
             Посмотреть профиль
           </Button>

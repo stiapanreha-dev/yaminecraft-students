@@ -1,14 +1,50 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Calendar, Users, TrendingUp } from 'lucide-react';
 import { useStudents } from '@/hooks/useStudents';
 import { StudentCard } from '@/components/student/StudentCard';
 import { useAuth } from '@/hooks/useAuth';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/services/firebase';
 
 export const HomePage = () => {
   const { students, loading } = useStudents({ limitCount: 6 });
   const { isAuthenticated } = useAuth();
+  const [stats, setStats] = useState({
+    students: 0,
+    achievements: 0,
+    events: 0
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Считаем только учеников (не админов)
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        const studentsCount = usersSnapshot.docs.filter(doc => doc.data().role === 'student').length;
+
+        // Считаем достижения
+        const achievementsSnapshot = await getDocs(collection(db, 'achievements'));
+        const achievementsCount = achievementsSnapshot.size;
+
+        // Считаем мероприятия
+        const eventsSnapshot = await getDocs(collection(db, 'events'));
+        const eventsCount = eventsSnapshot.size;
+
+        setStats({
+          students: studentsCount,
+          achievements: achievementsCount,
+          events: eventsCount
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    fetchStats();
+  }, []);
   const features = [
     {
       icon: Trophy,
@@ -36,11 +72,11 @@ export const HomePage = () => {
     },
   ];
 
-  const stats = [
-    { label: 'Учеников', value: '150+' },
-    { label: 'Достижений', value: '500+' },
-    { label: 'Мероприятий', value: '50+' },
-    { label: 'Категорий', value: '4' },
+  const statsDisplay = [
+    { label: 'Учеников', value: stats.students },
+    { label: 'Достижений', value: stats.achievements },
+    { label: 'Мероприятий', value: stats.events },
+    { label: 'Категорий', value: 4 },
   ];
 
   return (
@@ -72,7 +108,7 @@ export const HomePage = () => {
 
       {/* Stats Section */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
+        {statsDisplay.map((stat, index) => (
           <Card key={index}>
             <CardContent className="pt-6 text-center">
               <div className="text-3xl font-bold text-primary">{stat.value}</div>

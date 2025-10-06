@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { eventSchema } from '@/utils/validators';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ImageUpload } from '@/components/ui/image-upload';
 import {
   Form,
   FormControl,
@@ -142,15 +143,20 @@ export const EventForm = ({
           />
         </div>
 
-        {/* Image URL */}
+        {/* Image Upload */}
         <FormField
           control={form.control}
           name="imageUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>URL изображения (опционально)</FormLabel>
+              <FormLabel>Изображение мероприятия (опционально)</FormLabel>
               <FormControl>
-                <Input placeholder="https://example.com/image.jpg" {...field} />
+                <ImageUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  onRemove={() => field.onChange('')}
+                  disabled={loading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

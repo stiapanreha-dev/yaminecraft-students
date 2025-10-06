@@ -28,12 +28,14 @@ import { ru } from 'date-fns/locale';
 /**
  * Форма создания/редактирования достижения
  * @param {Object} initialData - начальные данные для редактирования
+ * @param {Array} students - список учеников для выбора
  * @param {Function} onSubmit - callback для отправки формы
  * @param {Function} onCancel - callback для отмены
  * @param {boolean} loading - состояние загрузки
  */
 export const AchievementForm = ({
   initialData = null,
+  students = [],
   onSubmit,
   onCancel,
   loading = false
@@ -41,6 +43,7 @@ export const AchievementForm = ({
   const form = useForm({
     resolver: zodResolver(achievementSchema),
     defaultValues: initialData || {
+      userId: '',
       title: '',
       description: '',
       category: 'sport',
@@ -66,6 +69,32 @@ export const AchievementForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {/* Student Selection */}
+        <FormField
+          control={form.control}
+          name="userId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Ученик</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите ученика" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {students.filter(s => s.role === 'student').map((student) => (
+                    <SelectItem key={student.uid} value={student.uid}>
+                      {student.profile?.firstName} {student.profile?.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         {/* Title */}
         <FormField
           control={form.control}

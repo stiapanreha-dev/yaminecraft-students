@@ -8,9 +8,15 @@ const useAuthStore = create((set) => ({
   loading: true,
   error: null,
 
-  setUser: (user) => set({ user }),
+  setUser: (user) => {
+    console.log('authStore: setUser called', { user: !!user, role: user?.role });
+    set({ user });
+  },
   setUserProfile: (profile) => set({ userProfile: profile }),
-  setLoading: (loading) => set({ loading }),
+  setLoading: (loading) => {
+    console.log('authStore: setLoading called', { loading });
+    set({ loading });
+  },
   setError: (error) => set({ error }),
 
   initAuth: () => {

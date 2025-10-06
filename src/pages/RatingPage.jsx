@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { RatingTable } from '@/components/rating/RatingTable';
 import { RatingFilters } from '@/components/rating/RatingFilters';
 import { useRating, RATING_PERIODS } from '@/hooks/useRating';
+import { useStudents } from '@/hooks/useStudents';
 import { getUserById } from '@/services/firestore';
 
 export const RatingPage = () => {
@@ -9,34 +10,60 @@ export const RatingPage = () => {
   const [category, setCategory] = useState('all');
   const [students, setStudents] = useState({});
 
-  const { ratings, loading, error } = useRating({
+  const { ratings, loading: ratingsLoading, error } = useRating({
     period,
     category,
     limitCount: 100,
     realtime: false
   });
 
+  const { students: allStudents, loading: studentsLoading } = useStudents();
+
+  // Создаем рейтинги из учеников если нет ratings
+  const displayRatings = ratings.length > 0 ? ratings : allStudents.map(student => ({
+    userId: student.id,
+    totalPoints: 0,
+    monthPoints: 0,
+    yearPoints: 0,
+    breakdown: {
+      sport: 0,
+      study: 0,
+      creativity: 0,
+      volunteer: 0
+    }
+  }));
+
   // Загружаем данные учеников для отображения в таблице
   useEffect(() => {
     const fetchStudents = async () => {
       const studentsData = {};
-      for (const rating of ratings) {
-        if (!studentsData[rating.userId]) {
-          try {
-            const student = await getUserById(rating.userId);
-            studentsData[rating.userId] = student;
-          } catch (err) {
-            console.error(`Error fetching student ${rating.userId}:`, err);
+
+      // Если есть ratings, загружаем учеников по ним
+      if (ratings.length > 0) {
+        for (const rating of ratings) {
+          if (!studentsData[rating.userId]) {
+            try {
+              const student = await getUserById(rating.userId);
+              studentsData[rating.userId] = student;
+            } catch (err) {
+              console.error(`Error fetching student ${rating.userId}:`, err);
+            }
           }
         }
+      } else {
+        // Иначе используем всех учеников
+        allStudents.forEach(student => {
+          studentsData[student.id] = student;
+        });
       }
+
       setStudents(studentsData);
     };
 
-    if (ratings.length > 0) {
+    if (ratings.length > 0 || allStudents.length > 0) {
       fetchStudents();
     }
-  }, [ratings]);
+  }, [ratings, allStudents]);
 
   const handlePeriodChange = (newPeriod) => {
     setPeriod(newPeriod);
@@ -73,8 +100,8 @@ export const RatingPage = () => {
 
       {/* Rating Table */}
       <RatingTable
-        ratings={ratings}
-        loading={loading}
+        ratings={displayRatings}
+        loading={ratingsLoading || studentsLoading}
         students={students}
       />
     </div>
