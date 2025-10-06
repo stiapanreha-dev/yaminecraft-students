@@ -7,7 +7,7 @@ import { StudentCard } from '@/components/student/StudentCard';
 import { useAuth } from '@/hooks/useAuth';
 
 export const HomePage = () => {
-  const { students, loading } = useStudents({ limitCount: 6, sortBy: 'createdAt' });
+  const { students, loading } = useStudents({ limitCount: 6 });
   const { isAuthenticated } = useAuth();
   const features = [
     {

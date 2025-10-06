@@ -19,7 +19,7 @@ import { getUserById, updateUser } from '@/services/firestore';
 export const useStudents = (options = {}) => {
   const {
     filterClass = null,
-    sortBy = 'profile.lastName',
+    sortBy = null,
     limitCount = 50,
     realtime = false
   } = options;
