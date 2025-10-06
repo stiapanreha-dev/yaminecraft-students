@@ -2,8 +2,11 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Calendar, Users, TrendingUp } from 'lucide-react';
+import { useStudents } from '@/hooks/useStudents';
+import { StudentCard } from '@/components/student/StudentCard';
 
 export const HomePage = () => {
+  const { students, loading } = useStudents({ limitCount: 6, sortBy: 'createdAt' });
   const features = [
     {
       icon: Trophy,
@@ -111,6 +114,53 @@ export const HomePage = () => {
             );
           })}
         </div>
+      </section>
+
+      {/* Students Section */}
+      <section className="space-y-8">
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-bold">Наши ученики</h2>
+          <p className="text-muted-foreground">
+            Познакомьтесь с участниками платформы
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="h-48" />
+              </Card>
+            ))}
+          </div>
+        ) : students.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {students.map((student) => (
+                <StudentCard key={student.id} student={student} />
+              ))}
+            </div>
+            <div className="text-center">
+              <Link to="/rating">
+                <Button variant="outline" size="lg">
+                  Посмотреть всех учеников →
+                </Button>
+              </Link>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
+              Пока нет зарегистрированных учеников
+            </p>
+            <Link to="/login">
+              <Button className="mt-4">
+                Зарегистрироваться
+              </Button>
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* CTA Section */}
