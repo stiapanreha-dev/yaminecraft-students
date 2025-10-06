@@ -40,6 +40,19 @@ export const getUser = async (uid) => {
   }
 };
 
+export const getUserById = async (uid) => {
+  const docSnap = await getDoc(doc(db, 'users', uid));
+  if (docSnap.exists()) {
+    return { uid: docSnap.id, ...docSnap.data() };
+  }
+  throw new Error('User not found');
+};
+
+export const getAllUsers = async () => {
+  const querySnapshot = await getDocs(collection(db, 'users'));
+  return querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+};
+
 export const updateUser = async (uid, userData) => {
   try {
     await updateDoc(doc(db, 'users', uid), {
@@ -92,6 +105,16 @@ export const getUserAchievements = async (userId) => {
   }
 };
 
+export const getAchievementsByUserId = async (userId) => {
+  const q = query(
+    collection(db, 'achievements'),
+    where('userId', '==', userId),
+    orderBy('date', 'desc')
+  );
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
 export const updateAchievement = async (achievementId, data) => {
   try {
     await updateDoc(doc(db, 'achievements', achievementId), data);
@@ -136,6 +159,12 @@ export const getAllEvents = async () => {
   }
 };
 
+export const getEvents = async () => {
+  const q = query(collection(db, 'events'), orderBy('date', 'desc'));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
 export const updateEvent = async (eventId, eventData) => {
   try {
     await updateDoc(doc(db, 'events', eventId), {
@@ -168,6 +197,14 @@ export const getUserRating = async (userId) => {
   } catch (error) {
     return { rating: null, error: error.message };
   }
+};
+
+export const getRatingByUserId = async (userId) => {
+  const docSnap = await getDoc(doc(db, 'ratings', userId));
+  if (docSnap.exists()) {
+    return { userId: docSnap.id, ...docSnap.data() };
+  }
+  return null;
 };
 
 export const getTopRatings = async (limitCount = 10, period = 'all') => {

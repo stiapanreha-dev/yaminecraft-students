@@ -58,7 +58,7 @@ export const LoginPage = () => {
     e.preventDefault();
 
     // Validation
-    if (!registerEmail || !registerPassword || !firstName || !lastName || !birthDate || !classValue) {
+    if (!registerEmail || !registerPassword || !registerConfirmPassword || !firstName || !lastName || !birthDate || !classValue) {
       toast.error('Заполните все обязательные поля');
       return;
     }

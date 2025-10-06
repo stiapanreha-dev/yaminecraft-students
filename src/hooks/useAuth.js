@@ -65,15 +65,23 @@ export const useAuth = () => {
       const userCredential = await firebaseSignUp(auth, email, password);
 
       // Создаём документ пользователя в Firestore
-      const userData = await createUser({
-        uid: userCredential.user.uid,
+      const userData = {
         email: userCredential.user.email,
         role: 'student', // По умолчанию роль ученика
         profile: profileData
-      });
+      };
 
-      setUser(userData);
-      return { success: true, user: userData };
+      const result = await createUser(userCredential.user.uid, userData);
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      // Получаем созданного пользователя
+      const createdUser = await getUserById(userCredential.user.uid);
+
+      setUser(createdUser);
+      return { success: true, user: createdUser };
     } catch (error) {
       console.error('Sign up error:', error);
       return { success: false, error: error.message };
