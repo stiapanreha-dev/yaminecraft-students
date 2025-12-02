@@ -1,0 +1,320 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum Role {
+  VISITOR
+  STUDENT
+  PENDING_TEACHER
+  TEACHER
+  ADMIN
+}
+
+enum Category {
+  SPORT
+  STUDY
+  CREATIVITY
+  VOLUNTEER
+}
+
+enum SubmissionStatus {
+  PENDING
+  SUBMITTED
+  GRADED
+  RETURNED
+}
+
+enum EventType {
+  MASTER_CLASS
+  COMPETITION
+  FREE_LESSON
+  WORKSHOP
+  OTHER
+}
+
+enum EventLevel {
+  SCHOOL
+  DISTRICT
+  CITY
+  REGIONAL
+  NATIONAL
+  INTERNATIONAL
+}
+
+enum RegistrationStatus {
+  REGISTERED
+  CONFIRMED
+  CANCELLED
+  ATTENDED
+}
+
+enum MaterialCategory {
+  METHODOLOGY
+  LESSON_PLAN
+  PRESENTATION
+  WORKSHEET
+  OTHER
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  password    String
+  role        Role      @default(VISITOR)
+
+  firstName   String
+  lastName    String
+  middleName  String?
+  birthDate   DateTime?
+  photoUrl    String?
+  class       String?
+  bio         String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Existing relations
+  achievements      Achievement[]
+  rating            Rating?
+  createdEvents     Event[]              @relation("EventCreator")
+
+  // New relations
+  eventRegistrations EventRegistration[]
+  createdHomework   Homework[]           @relation("HomeworkCreator")
+  homeworkSubmissions HomeworkSubmission[]
+  assignedHomework  HomeworkAssignment[] @relation("AssignedHomework")
+  authoredArticles  Article[]            @relation("ArticleAuthor")
+  createdMaterials  Material[]           @relation("MaterialCreator")
+
+  @@map("users")
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  category    Category
+  points      Int
+  date        DateTime
+
+  createdAt   DateTime @default(now())
+
+  @@map("achievements")
+}
+
+model Rating {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  totalPoints Int      @default(0)
+  yearPoints  Int      @default(0)
+  monthPoints Int      @default(0)
+
+  sportPoints      Int @default(0)
+  studyPoints      Int @default(0)
+  creativityPoints Int @default(0)
+  volunteerPoints  Int @default(0)
+
+  lastUpdated DateTime @default(now())
+
+  @@map("ratings")
+}
+
+// ==================== EVENTS ====================
+
+model Event {
+  id              String      @id @default(uuid())
+  title           String
+  description     String?
+  date            DateTime
+  location        String?
+  address         String?
+  organizer       String?
+  imageUrl        String?
+  eventType       EventType   @default(OTHER)
+  level           EventLevel?
+  maxParticipants Int?
+  registrationOpen Boolean    @default(true)
+
+  createdById     String
+  createdBy       User        @relation("EventCreator", fields: [createdById], references: [id])
+
+  registrations   EventRegistration[]
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("events")
+}
+
+model EventRegistration {
+  id        String             @id @default(uuid())
+  eventId   String
+  event     Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    RegistrationStatus @default(REGISTERED)
+  createdAt DateTime           @default(now())
+
+  @@unique([eventId, userId])
+  @@map("event_registrations")
+}
+
+// ==================== HOMEWORK ====================
+
+model Homework {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  dueDate     DateTime
+
+  createdById String
+  createdBy   User     @relation("HomeworkCreator", fields: [createdById], references: [id])
+
+  submissions HomeworkSubmission[]
+  assignments HomeworkAssignment[]
+  files       HomeworkFile[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("homework")
+}
+
+model HomeworkFile {
+  id          String   @id @default(uuid())
+  homeworkId  String
+  homework    Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+
+  filename    String
+  fileUrl     String
+  fileSize    Int
+  fileType    String
+
+  createdAt   DateTime @default(now())
+
+  @@map("homework_files")
+}
+
+model HomeworkAssignment {
+  id          String   @id @default(uuid())
+  homeworkId  String
+  homework    Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User     @relation("AssignedHomework", fields: [studentId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([homeworkId, studentId])
+  @@map("homework_assignments")
+}
+
+model HomeworkSubmission {
+  id          String           @id @default(uuid())
+  homeworkId  String
+  homework    Homework         @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  content     String?
+  fileUrl     String?
+  grade       Int?
+  comment     String?
+  status      SubmissionStatus @default(PENDING)
+  submittedAt DateTime?
+  gradedAt    DateTime?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([homeworkId, studentId])
+  @@map("homework_submissions")
+}
+
+// ==================== BLOG ====================
+
+model Project {
+  id          String    @id @default(uuid())
+  name        String
+  color       String
+  description String?
+  imageUrl    String?
+
+  articles    Article[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("projects")
+}
+
+model Article {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  content     String
+  excerpt     String?
+  imageUrl    String?
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+
+  authorId    String
+  author      User      @relation("ArticleAuthor", fields: [authorId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("articles")
+}
+
+// ==================== MATERIALS ====================
+
+model Material {
+  id          String           @id @default(uuid())
+  title       String
+  description String
+  imageUrl    String?
+  category    MaterialCategory
+  downloads   Int              @default(0)
+
+  createdById String
+  createdBy   User             @relation("MaterialCreator", fields: [createdById], references: [id])
+
+  files       MaterialFile[]
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("materials")
+}
+
+model MaterialFile {
+  id          String   @id @default(uuid())
+  materialId  String
+  material    Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  filename    String   // Оригинальное имя файла
+  fileUrl     String   // URL загруженного файла
+  fileSize    Int      // Размер в байтах
+  fileType    String   // MIME-тип
+
+  createdAt   DateTime @default(now())
+
+  @@map("material_files")
+}

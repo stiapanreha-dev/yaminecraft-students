@@ -1,0 +1,331 @@
+/* Bootstrap */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+@import 'react-toastify/dist/ReactToastify.css';
+@import 'react-datepicker/dist/react-datepicker.css';
+
+/* Custom Theme Variables */
+:root {
+  /* New Color Scheme - Override Bootstrap primary blue */
+  --bs-blue: #69C5F8;
+  --bs-primary: #69C5F8;
+  --bs-primary-rgb: 105, 197, 248;
+  --bs-accent: #CDFF07;
+  --bs-accent-rgb: 205, 255, 7;
+  --bs-dark: #313642;
+  --bs-dark-rgb: 49, 54, 66;
+
+  /* Override Bootstrap defaults */
+  --bs-body-color: var(--bs-dark);
+  --bs-link-color: #69C5F8;
+  --bs-link-hover-color: #4BA8E0;
+}
+
+/* Custom Primary Button Override */
+.btn-primary {
+  --bs-btn-bg: #69C5F8;
+  --bs-btn-border-color: #69C5F8;
+  --bs-btn-hover-bg: #4BA8E0;
+  --bs-btn-hover-border-color: #4BA8E0;
+  --bs-btn-active-bg: #3A8BC2;
+  --bs-btn-active-border-color: #3A8BC2;
+  --bs-btn-disabled-bg: #69C5F8;
+  --bs-btn-disabled-border-color: #69C5F8;
+  background-color: #69C5F8 !important;
+  border-color: #69C5F8 !important;
+  color: var(--bs-dark);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #4BA8E0 !important;
+  border-color: #4BA8E0 !important;
+  color: #fff;
+}
+
+/* Outline Primary */
+.btn-outline-primary {
+  --bs-btn-color: #69C5F8;
+  --bs-btn-border-color: #69C5F8;
+  --bs-btn-hover-bg: #69C5F8;
+  --bs-btn-hover-border-color: #69C5F8;
+  --bs-btn-active-bg: #4BA8E0;
+  --bs-btn-active-border-color: #4BA8E0;
+  color: #69C5F8 !important;
+  border-color: #69C5F8 !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: #69C5F8 !important;
+  border-color: #69C5F8 !important;
+  color: var(--bs-dark) !important;
+}
+
+/* Nav Pills Active */
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+  background-color: #69C5F8 !important;
+  color: var(--bs-dark) !important;
+}
+
+/* Links */
+a {
+  color: #69C5F8;
+}
+
+a:hover {
+  color: #4BA8E0;
+}
+
+/* Form focus */
+.form-control:focus,
+.form-select:focus {
+  border-color: #69C5F8 !important;
+  box-shadow: 0 0 0 0.25rem rgba(105, 197, 248, 0.25) !important;
+}
+
+/* Badge primary */
+.badge.bg-primary {
+  background-color: #69C5F8 !important;
+  color: var(--bs-dark) !important;
+}
+
+/* Border primary */
+.border-primary {
+  border-color: #69C5F8 !important;
+}
+
+/* Progress bar */
+.progress-bar {
+  background-color: #69C5F8 !important;
+}
+
+/* Pagination */
+.page-link {
+  color: #69C5F8;
+}
+
+.page-item.active .page-link {
+  background-color: #69C5F8;
+  border-color: #69C5F8;
+}
+
+/* List group */
+.list-group-item.active {
+  background-color: #69C5F8;
+  border-color: #69C5F8;
+  color: var(--bs-dark);
+}
+
+/* Dropdown */
+.dropdown-item.active,
+.dropdown-item:active {
+  background-color: #69C5F8;
+  color: var(--bs-dark);
+}
+
+/* Custom Accent Button */
+.btn-accent {
+  background-color: var(--bs-accent);
+  border-color: var(--bs-accent);
+  color: var(--bs-dark);
+  font-weight: 600;
+}
+
+.btn-accent:hover,
+.btn-accent:focus {
+  background-color: #b8e606;
+  border-color: #b8e606;
+  color: var(--bs-dark);
+}
+
+.btn-accent:active {
+  background-color: #a3cc05;
+  border-color: #a3cc05;
+}
+
+.btn-outline-accent {
+  color: var(--bs-dark);
+  border-color: var(--bs-accent);
+  background-color: transparent;
+}
+
+.btn-outline-accent:hover {
+  background-color: var(--bs-accent);
+  border-color: var(--bs-accent);
+  color: var(--bs-dark);
+}
+
+/* Custom backgrounds */
+.bg-primary {
+  background-color: var(--bs-primary) !important;
+}
+
+.bg-accent {
+  background-color: var(--bs-accent) !important;
+}
+
+.bg-dark-custom {
+  background-color: var(--bs-dark) !important;
+}
+
+/* Custom text colors */
+.text-primary {
+  color: var(--bs-primary) !important;
+}
+
+.text-accent {
+  color: var(--bs-accent) !important;
+}
+
+.text-dark-custom {
+  color: var(--bs-dark) !important;
+}
+
+/* Card styling */
+.card {
+  border-radius: 0.75rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+/* Avatar styles */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: var(--bs-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bs-dark);
+  font-weight: 600;
+}
+
+.avatar-sm {
+  width: 32px;
+  height: 32px;
+  font-size: 0.875rem;
+}
+
+.avatar-lg {
+  width: 64px;
+  height: 64px;
+  font-size: 1.5rem;
+}
+
+.avatar-xl {
+  width: 128px;
+  height: 128px;
+  font-size: 3rem;
+}
+
+/* Form styling */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.25rem rgba(105, 197, 248, 0.25);
+}
+
+/* Navbar custom */
+.navbar-brand {
+  font-weight: 700;
+}
+
+/* Badge accent */
+.badge.bg-accent {
+  color: var(--bs-dark);
+}
+
+/* Table hover */
+.table-hover tbody tr:hover {
+  background-color: rgba(105, 197, 248, 0.1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bs-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4BA8E0;
+}
+
+/* Toast customization */
+.Toastify__toast--success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.Toastify__toast--error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Loading spinner */
+.spinner-primary {
+  color: var(--bs-primary);
+}
+
+/* Hero section */
+.hero-section {
+  background: linear-gradient(135deg, var(--bs-primary) 0%, #4BA8E0 100%);
+  color: var(--bs-dark);
+}
+
+/* General body styles */
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--bs-dark);
+}
+
+/* Sticky header shadow */
+.sticky-top {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* File upload zone */
+.upload-zone {
+  border: 2px dashed var(--bs-primary);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  text-align: center;
+  background-color: rgba(105, 197, 248, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.upload-zone:hover,
+.upload-zone.dragging {
+  background-color: rgba(105, 197, 248, 0.1);
+  border-color: #4BA8E0;
+}
+
+/* Rating rank colors */
+.rank-gold {
+  color: #FFD700;
+}
+
+.rank-silver {
+  color: #C0C0C0;
+}
+
+.rank-bronze {
+  color: #CD7F32;
+}

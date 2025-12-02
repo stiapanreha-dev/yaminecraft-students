@@ -30,3 +30,7 @@ dist-ssr
 
 # Project specific
 fb.conf
+
+# Documentation (local only)
+CLAUDE.md
+docs/
