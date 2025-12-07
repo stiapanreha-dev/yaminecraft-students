@@ -132,10 +132,10 @@ export const HomePage = () => {
             <Bot size={48} className="text-dark" />
           </div>
           <h1 className="display-4 fw-bold mb-3">
-            {activeBanner?.title || 'Школа робототехники'}
+            {activeBanner?.title || 'RoboSaratov.RU'}
           </h1>
           <p className="lead mb-4" style={{ maxWidth: '600px', margin: '0 auto', opacity: 0.9 }}>
-            {activeBanner?.subtitle || 'Учимся создавать роботов, участвуем в конкурсах и развиваем навыки будущего'}
+            {activeBanner?.subtitle || 'Робототехника Саратовской области. Рейтинг лучших инженеров! Соревнуйся и обменивай баллы на деньги!'}
           </p>
           <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center">
             {activeBanner?.buttonText && activeBanner?.buttonLink ? (
