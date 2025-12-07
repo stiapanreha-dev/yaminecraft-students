@@ -40,7 +40,7 @@
 yaminecraft/
 ├── backend/           # NestJS API
 │   ├── prisma/        # Schema + migrations
-│   └── src/           # Modules: auth, users, achievements, events, ratings, materials, uploads, homework, articles, projects
+│   └── src/           # Modules: auth, users, achievements, events, ratings, materials, uploads, homework, articles, projects, banners, pages
 ├── frontend/          # React SPA
 │   └── src/
 │       ├── components/  # UI, layout, admin, student, rating, events, homework
@@ -63,6 +63,8 @@ yaminecraft/
 | `backend/src/homework/*` | Домашние задания |
 | `backend/src/articles/*` | Статьи блога |
 | `backend/src/projects/*` | Проекты (категории блога) |
+| `backend/src/banners/*` | Баннеры на главной |
+| `backend/src/pages/*` | CMS страницы |
 | `frontend/src/services/api.js` | API клиент |
 | `frontend/src/App.jsx` | Роутинг |
 | `frontend/src/store/authStore.js` | Zustand state |
@@ -123,13 +125,18 @@ yaminecraft/
 
 Раздел `/materials` доступен только для `TEACHER` и `ADMIN`.
 
-### Категории материалов
+### Категории материалов (MaterialCategory)
 
 - `METHODOLOGY` - Методические материалы
 - `LESSON_PLAN` - Планы уроков
 - `PRESENTATION` - Презентации
 - `WORKSHEET` - Рабочие листы
 - `OTHER` - Другое
+
+### Модели
+
+- `Material` - материал с названием, описанием, категорией, счётчиком скачиваний
+- `MaterialFile` - прикреплённые файлы (filename, fileUrl, fileSize, fileType)
 
 ### Загрузка файлов
 
@@ -144,8 +151,35 @@ yaminecraft/
 
 ### Модели
 
-- `Project` - проект (категория статей) с названием, цветом и изображением
-- `Article` - статья с заголовком, slug, контентом, excerpt и изображением
+- `Project` - проект (категория статей) с названием, цветом, описанием и изображением
+- `Article` - статья с заголовком, slug, контентом, excerpt, изображением и флагом публикации
+
+## CMS (Страницы и Баннеры)
+
+### Page - статические страницы
+
+Модель для CMS страниц (например, "О нас").
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `slug` | String | Уникальный идентификатор (например: `about`) |
+| `title` | String | Заголовок страницы |
+| `content` | String | HTML/текст контента |
+
+### Banner - баннеры на главной
+
+Управление hero-секцией на главной странице.
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `title` | String | Заголовок баннера |
+| `subtitle` | String? | Подзаголовок |
+| `imageUrl` | String? | URL фонового изображения |
+| `backgroundColor` | String? | Цвет фона (по умолчанию #313642) |
+| `buttonText` | String? | Текст кнопки |
+| `buttonLink` | String? | Ссылка кнопки |
+| `isActive` | Boolean | Активен ли баннер |
+| `order` | Int | Порядок сортировки |
 
 ## Мероприятия
 
@@ -166,15 +200,37 @@ yaminecraft/
 - `NATIONAL` - Национальный
 - `INTERNATIONAL` - Международный
 
-### Дополнительные поля мероприятий
+### Формат мероприятий (EventFormat)
 
-- `phone` - Телефон для записи (для мастер-классов и бесплатных занятий)
-- `prizePool` - Призовой фонд (отображается жёлтой плашкой)
-- `documentUrl` - URL положения о мероприятии (PDF/DOC)
+- `OFFLINE` - Очно
+- `ONLINE` - Онлайн
+- `HYBRID` - Смешанный
+
+### Поля модели Event
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `title` | String | Название |
+| `description` | String? | Описание |
+| `date` | DateTime | Дата начала |
+| `endDate` | DateTime? | Дата окончания (для многодневных) |
+| `location` | String? | Место проведения |
+| `address` | String? | Адрес |
+| `organizer` | String? | Организатор |
+| `imageUrl` | String? | URL изображения |
+| `documentUrl` | String? | URL положения (PDF/DOC) |
+| `phone` | String? | Телефон для записи |
+| `prizePool` | String? | Призовой фонд (жёлтая плашка) |
+| `eventType` | EventType | Тип мероприятия |
+| `eventFormat` | EventFormat | Формат (очно/онлайн/смешанный) |
+| `level` | EventLevel? | Уровень мероприятия |
+| `maxParticipants` | Int? | Макс. участников |
+| `registrationOpen` | Boolean | Открыта ли регистрация |
 
 ### Регистрация на мероприятия
 
 - `EventRegistration` - связь пользователя с мероприятием
+- Поле `organization` - образовательная организация участника
 - Статусы: `REGISTERED`, `CONFIRMED`, `CANCELLED`, `ATTENDED`
 - Для MASTER_CLASS и FREE_LESSON показывается модальное окно с телефоном вместо онлайн-записи
 
@@ -250,6 +306,19 @@ yaminecraft/
 - `DELETE /api/events/:id` - Удаление мероприятия (TEACHER/ADMIN)
 - `POST /api/events/:id/register` - Регистрация на мероприятие
 - `DELETE /api/events/:id/register` - Отмена регистрации
+
+### Banners (ADMIN)
+- `GET /api/banners` - Список всех баннеров
+- `GET /api/banners/active` - Активные баннеры (отсортированные по order)
+- `GET /api/banners/:id` - Детали баннера
+- `POST /api/banners` - Создание баннера
+- `PUT /api/banners/:id` - Обновление баннера
+- `DELETE /api/banners/:id` - Удаление баннера
+
+### Pages (CMS)
+- `GET /api/pages` - Список страниц
+- `GET /api/pages/:slug` - Страница по slug
+- `PUT /api/pages/:slug` - Обновление страницы (ADMIN)
 
 ## Команды
 
