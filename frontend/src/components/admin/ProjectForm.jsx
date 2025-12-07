@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useEffect } from 'react';
 import { Form, Row, Col } from 'react-bootstrap';
 import { Button } from '@/components/ui/button';
 import { ImageUpload } from '@/components/ui/image-upload';
@@ -8,8 +9,8 @@ import { ImageUpload } from '@/components/ui/image-upload';
 const projectSchema = z.object({
   name: z.string().min(2, 'Минимум 2 символа').max(100, 'Максимум 100 символов'),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Введите цвет в формате #RRGGBB'),
-  description: z.string().max(500, 'Максимум 500 символов').optional().or(z.literal('')),
-  imageUrl: z.string().url('Некорректный URL').optional().or(z.literal('')),
+  description: z.string().max(500, 'Максимум 500 символов').optional().nullable(),
+  imageUrl: z.string().optional().nullable(),
 });
 
 const defaultColors = [
@@ -28,10 +29,11 @@ export const ProjectForm = ({
     handleSubmit,
     formState: { errors },
     setValue,
-    watch
+    watch,
+    reset
   } = useForm({
     resolver: zodResolver(projectSchema),
-    defaultValues: initialData || {
+    defaultValues: {
       name: '',
       color: '#69C5F8',
       description: '',
@@ -39,10 +41,30 @@ export const ProjectForm = ({
     }
   });
 
+  // Сбрасываем форму при изменении initialData
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        name: initialData.name || '',
+        color: initialData.color || '#69C5F8',
+        description: initialData.description || '',
+        imageUrl: initialData.imageUrl || '',
+      });
+    } else {
+      reset({
+        name: '',
+        color: '#69C5F8',
+        description: '',
+        imageUrl: '',
+      });
+    }
+  }, [initialData, reset]);
+
   const color = watch('color');
   const imageUrl = watch('imageUrl');
 
   const handleFormSubmit = async (data) => {
+    console.log('ProjectForm submit:', data);
     if (onSubmit) {
       await onSubmit(data);
     }

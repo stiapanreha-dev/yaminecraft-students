@@ -164,17 +164,19 @@ export const EventsPage = () => {
   const isSelectedFull = selectedEvent?.maxParticipants && selectedRegistrationCount >= selectedEvent.maxParticipants;
 
   return (
-    <div className="d-flex flex-column gap-4 py-4">
+    <div className="d-flex flex-column gap-4">
       {/* Header */}
-      <div>
-        <h1 className="display-6 fw-bold mb-2">Мероприятия</h1>
-        <p className="text-secondary">
-          Мастер-классы, конкурсы и бесплатные занятия по робототехнике
-        </p>
+      <div className="page-header">
+        <div className="container">
+          <h1 className="display-6 fw-bold mb-2">Мероприятия</h1>
+          <p>
+            Мастер-классы, конкурсы и бесплатные занятия по робототехнике
+          </p>
+        </div>
       </div>
 
       {/* Tabs */}
-      <Nav variant="pills" className="gap-2 flex-wrap">
+      <Nav variant="pills" className="nav-pills-accent gap-2 flex-wrap">
         <Nav.Item>
           <Nav.Link
             active={activeTab === 'upcoming'}

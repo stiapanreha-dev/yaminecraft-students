@@ -1,8 +1,10 @@
-import { Card, Row, Col } from 'react-bootstrap';
+import { useState, useEffect } from 'react';
+import { Container, Spinner, Alert, Card, Row, Col } from 'react-bootstrap';
 import { Trophy, Target, Users, Heart } from 'lucide-react';
+import { pagesApi } from '@/services/api';
 
-export const AboutPage = () => {
-  const goals = [
+const DEFAULT_CONTENT = {
+  goals: [
     {
       icon: Trophy,
       title: 'Мотивация к развитию',
@@ -23,9 +25,8 @@ export const AboutPage = () => {
       title: 'Признание заслуг',
       description: 'Каждое достижение ученика фиксируется и получает заслуженное признание'
     },
-  ];
-
-  const categories = [
+  ],
+  categories: [
     {
       name: 'Спорт',
       description: 'Достижения в спортивных соревнованиях, олимпиадах, турнирах',
@@ -46,11 +47,64 @@ export const AboutPage = () => {
       description: 'Социальная активность, помощь другим, организация мероприятий',
       examples: ['Благотворительные акции', 'Помощь младшим', 'Организация событий']
     },
-  ];
+  ]
+};
+
+export const AboutPage = () => {
+  const [page, setPage] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchPage = async () => {
+      try {
+        const response = await pagesApi.getBySlug('about');
+        setPage(response.data);
+      } catch (err) {
+        if (err.response?.status === 404) {
+          setPage(null);
+        } else {
+          setError('Ошибка загрузки страницы');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPage();
+  }, []);
+
+  if (loading) {
+    return (
+      <Container className="py-5 text-center">
+        <Spinner animation="border" variant="primary" />
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="py-5">
+        <Alert variant="danger">{error}</Alert>
+      </Container>
+    );
+  }
+
+  if (page?.content) {
+    return (
+      <Container className="py-5">
+        <h1 className="display-5 fw-bold mb-4 text-center">{page.title}</h1>
+        <div
+          className="page-content"
+          dangerouslySetInnerHTML={{ __html: page.content }}
+        />
+      </Container>
+    );
+  }
+
+  const { goals, categories } = DEFAULT_CONTENT;
 
   return (
     <div className="d-flex flex-column gap-5 py-4">
-      {/* Header */}
       <section className="text-center">
         <h1 className="display-5 fw-bold mb-3">О проекте</h1>
         <p className="lead text-secondary" style={{ maxWidth: '600px', margin: '0 auto' }}>
@@ -58,7 +112,6 @@ export const AboutPage = () => {
         </p>
       </section>
 
-      {/* Mission */}
       <section>
         <Card>
           <Card.Header>
@@ -79,7 +132,6 @@ export const AboutPage = () => {
         </Card>
       </section>
 
-      {/* Goals */}
       <section>
         <h2 className="h3 fw-bold text-center mb-4">Наши цели</h2>
         <Row className="g-4">
@@ -115,7 +167,6 @@ export const AboutPage = () => {
 
       <hr />
 
-      {/* Categories */}
       <section>
         <h2 className="h3 fw-bold text-center mb-4">Категории достижений</h2>
         <div className="d-flex flex-column gap-3">
@@ -142,7 +193,6 @@ export const AboutPage = () => {
 
       <hr />
 
-      {/* How it works */}
       <section>
         <h2 className="h3 fw-bold text-center mb-4">Как это работает</h2>
         <Card>

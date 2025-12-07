@@ -60,13 +60,15 @@ export const BlogPage = () => {
   }
 
   return (
-    <div className="d-flex flex-column gap-4 py-4">
+    <div className="d-flex flex-column gap-4">
       {/* Header */}
-      <div>
-        <h1 className="display-6 fw-bold mb-2">Блог проектов</h1>
-        <p className="text-secondary">
-          Статьи о наших проектах и достижениях в робототехнике
-        </p>
+      <div className="page-header">
+        <div className="container">
+          <h1 className="display-6 fw-bold mb-2">Наши проекты</h1>
+          <p>
+            Статьи о наших проектах и достижениях в робототехнике
+          </p>
+        </div>
       </div>
 
       {/* Project Filters */}

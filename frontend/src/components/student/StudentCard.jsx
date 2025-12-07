@@ -11,10 +11,12 @@ import { calculateAge } from '@/utils/dateFormatter';
  * @param {Object} student - данные ученика
  * @param {boolean} showPoints - показывать баллы
  * @param {number} rank - позиция в рейтинге (опционально)
+ * @param {string} variant - вариант отображения: 'default' | 'dark'
  */
-export const StudentCard = ({ student, showPoints = false, rank = null }) => {
+export const StudentCard = ({ student, showPoints = false, rank = null, variant = 'default' }) => {
   if (!student) return null;
 
+  const isDark = variant === 'dark';
   const userId = student.id;
   const fullName = `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'Без имени';
   const initials = `${student.firstName?.[0] || ''}${student.lastName?.[0] || ''}`.toUpperCase() || '?';
@@ -29,8 +31,17 @@ export const StudentCard = ({ student, showPoints = false, rank = null }) => {
     return 'outline';
   };
 
+  const cardStyle = {
+    backgroundColor: '#313642',
+    border: 'none',
+    borderRadius: '1rem'
+  };
+
+  const textColor = 'white';
+  const mutedColor = 'rgba(255,255,255,0.7)';
+
   return (
-    <Card className="h-100 shadow-sm hover-shadow">
+    <Card className={`h-100 ${isDark ? '' : 'shadow-sm hover-shadow'}`} style={cardStyle}>
       <Card.Body className="p-4">
         <div className="d-flex gap-3">
           {/* Avatar */}
@@ -41,15 +52,16 @@ export const StudentCard = ({ student, showPoints = false, rank = null }) => {
             </Avatar>
             {rank && rank <= 3 && (
               <div
-                className="position-absolute d-flex align-items-center justify-content-center rounded-circle bg-primary"
+                className="position-absolute d-flex align-items-center justify-content-center rounded-circle"
                 style={{
                   top: '-8px',
                   right: '-8px',
                   width: '24px',
-                  height: '24px'
+                  height: '24px',
+                  backgroundColor: 'var(--bs-accent)'
                 }}
               >
-                <Trophy style={{ width: '12px', height: '12px', color: 'white' }} />
+                <Trophy style={{ width: '12px', height: '12px', color: 'var(--bs-dark)' }} />
               </div>
             )}
           </div>
@@ -59,9 +71,9 @@ export const StudentCard = ({ student, showPoints = false, rank = null }) => {
             {/* Name and Rank */}
             <div className="d-flex justify-content-between align-items-start mb-2">
               <div className="min-w-0">
-                <h5 className="mb-0 fw-semibold text-truncate">{fullName}</h5>
+                <h5 className="mb-0 fw-semibold text-truncate" style={{ color: textColor }}>{fullName}</h5>
                 {student.middleName && (
-                  <small className="text-secondary">{student.middleName}</small>
+                  <small style={{ color: mutedColor }}>{student.middleName}</small>
                 )}
               </div>
               {rank && (
@@ -72,7 +84,7 @@ export const StudentCard = ({ student, showPoints = false, rank = null }) => {
             </div>
 
             {/* Details */}
-            <div className="d-flex flex-wrap gap-3 text-secondary small mb-2">
+            <div className="d-flex flex-wrap gap-3 small mb-2" style={{ color: mutedColor }}>
               {student.class && (
                 <div className="d-flex align-items-center">
                   <User style={{ width: '14px', height: '14px' }} className="me-1" />
@@ -89,7 +101,7 @@ export const StudentCard = ({ student, showPoints = false, rank = null }) => {
 
             {/* Bio Preview */}
             {student.bio && (
-              <p className="text-secondary small mb-0 text-truncate-2">
+              <p className="small mb-0 text-truncate-2" style={{ color: mutedColor }}>
                 {student.bio}
               </p>
             )}
@@ -97,17 +109,20 @@ export const StudentCard = ({ student, showPoints = false, rank = null }) => {
         </div>
       </Card.Body>
 
-      <Card.Footer className="bg-light px-4 py-3 d-flex justify-content-between align-items-center">
+      <Card.Footer
+        className="px-4 py-3 d-flex justify-content-between align-items-center"
+        style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.1)' }}
+      >
         <div>
           {showPoints && student.totalPoints !== undefined && (
-            <div className="d-flex align-items-center small fw-medium">
-              <Trophy style={{ width: '16px', height: '16px', color: '#ffc107' }} className="me-1" />
+            <div className="d-flex align-items-center small fw-medium" style={{ color: textColor }}>
+              <Trophy style={{ width: '16px', height: '16px', color: 'var(--bs-accent)' }} className="me-1" />
               <span>{student.totalPoints} баллов</span>
             </div>
           )}
         </div>
         <Link to={`/profile/${userId}`}>
-          <Button variant="outline" size="sm">
+          <Button variant="accent" size="sm">
             Посмотреть профиль
           </Button>
         </Link>

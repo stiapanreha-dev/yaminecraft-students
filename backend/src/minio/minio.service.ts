@@ -1,11 +1,13 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Minio from 'minio';
 
 @Injectable()
 export class MinioService implements OnModuleInit {
+  private readonly logger = new Logger(MinioService.name);
   private client: Minio.Client;
   private bucket: string;
+  private isAvailable = false;
 
   constructor(private configService: ConfigService) {
     this.client = new Minio.Client({
@@ -19,14 +21,19 @@ export class MinioService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.ensureBucket();
+    try {
+      await this.ensureBucket();
+      this.isAvailable = true;
+      this.logger.log('MinIO connected successfully');
+    } catch (error) {
+      this.logger.warn(`MinIO not available: ${error.message}. File uploads will fail.`);
+    }
   }
 
   private async ensureBucket() {
     const exists = await this.client.bucketExists(this.bucket);
     if (!exists) {
       await this.client.makeBucket(this.bucket);
-      // Set public read policy
       const policy = {
         Version: '2012-10-17',
         Statement: [
@@ -46,6 +53,9 @@ export class MinioService implements OnModuleInit {
     file: Express.Multer.File,
     filename: string,
   ): Promise<string> {
+    if (!this.isAvailable) {
+      throw new Error('MinIO is not available');
+    }
     await this.client.putObject(
       this.bucket,
       filename,
@@ -57,6 +67,7 @@ export class MinioService implements OnModuleInit {
   }
 
   async deleteFile(filename: string): Promise<void> {
+    if (!this.isAvailable) return;
     await this.client.removeObject(this.bucket, filename);
   }
 

@@ -13,11 +13,14 @@ export class EventsService {
         title: dto.title,
         description: dto.description,
         date: new Date(dto.date),
+        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
         location: dto.location,
         address: dto.address,
         organizer: dto.organizer,
         imageUrl: dto.imageUrl,
+        documentUrl: dto.documentUrl,
         eventType: dto.eventType,
+        eventFormat: dto.eventFormat,
         level: dto.level,
         maxParticipants: dto.maxParticipants,
         registrationOpen: dto.registrationOpen ?? true,
@@ -117,6 +120,7 @@ export class EventsService {
       data: {
         ...dto,
         date: dto.date ? new Date(dto.date) : undefined,
+        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
       },
       include: {
         createdBy: {
@@ -138,7 +142,7 @@ export class EventsService {
     return { message: 'Event deleted' };
   }
 
-  async register(eventId: string, userId: string) {
+  async register(eventId: string, userId: string, organization?: string) {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
       include: { _count: { select: { registrations: true } } },
@@ -165,7 +169,7 @@ export class EventsService {
     }
 
     return this.prisma.eventRegistration.create({
-      data: { eventId, userId },
+      data: { eventId, userId, organization },
       include: {
         event: true,
         user: {
@@ -202,7 +206,7 @@ export class EventsService {
       where: { eventId },
       include: {
         user: {
-          select: { id: true, firstName: true, lastName: true, email: true, photoUrl: true, class: true },
+          select: { id: true, firstName: true, lastName: true, middleName: true, email: true, photoUrl: true, class: true },
         },
       },
       orderBy: { createdAt: 'asc' },

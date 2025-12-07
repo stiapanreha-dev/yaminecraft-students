@@ -1,7 +1,8 @@
 import { Card } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Users, Bot, Trophy, GraduationCap, Wrench, Sparkles } from 'lucide-react';
+import { Calendar, MapPin, Users, Bot, Trophy, GraduationCap, Wrench, Sparkles, Gift } from 'lucide-react';
 import { formatDateLong, formatTime } from '@/utils/dateFormatter';
 
 const eventTypeConfig = {
@@ -44,6 +45,7 @@ export const EventCard = ({
     level,
     maxParticipants,
     registrationOpen = true,
+    prizePool,
     _count
   } = event;
 
@@ -66,6 +68,7 @@ export const EventCard = ({
   };
 
   return (
+    <Link to={`/events/${event.id}`} className="text-decoration-none">
     <Card
       className="h-100 overflow-hidden event-card border-0"
       style={{
@@ -74,7 +77,6 @@ export const EventCard = ({
         backgroundColor: 'var(--bs-primary)',
         color: 'white'
       }}
-      onClick={() => onViewDetails?.(event)}
       onMouseOver={(e) => {
         e.currentTarget.style.transform = 'translateY(-4px)';
         e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
@@ -119,11 +121,17 @@ export const EventCard = ({
 
       <Card.Body className="d-flex flex-column p-3">
         {/* Event type badge */}
-        <div className="mb-2">
+        <div className="mb-2 d-flex flex-wrap gap-1">
           <Badge bg={typeConfig.color} className="d-inline-flex align-items-center gap-1">
             <TypeIcon size={14} />
             {typeConfig.label}
           </Badge>
+          {prizePool && (
+            <Badge bg="warning" className="d-inline-flex align-items-center gap-1 text-dark">
+              <Gift size={14} />
+              {prizePool}
+            </Badge>
+          )}
         </div>
 
         {/* Title */}
@@ -207,5 +215,6 @@ export const EventCard = ({
         )}
       </Card.Body>
     </Card>
+    </Link>
   );
 };

@@ -12,6 +12,8 @@ import { HomeworkModule } from './homework/homework.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ArticlesModule } from './articles/articles.module';
 import { MaterialsModule } from './materials/materials.module';
+import { BannersModule } from './banners/banners.module';
+import { PagesModule } from './pages/pages.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { MaterialsModule } from './materials/materials.module';
     ProjectsModule,
     ArticlesModule,
     MaterialsModule,
+    BannersModule,
+    PagesModule,
   ],
 })
 export class AppModule {}

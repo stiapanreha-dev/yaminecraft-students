@@ -1,5 +1,5 @@
 import { IsString, IsDateString, IsOptional, IsEnum, IsInt, IsBoolean, Min } from 'class-validator';
-import { EventType, EventLevel } from '@prisma/client';
+import { EventType, EventLevel, EventFormat } from '@prisma/client';
 
 export class UpdateEventDto {
   @IsOptional()
@@ -13,6 +13,10 @@ export class UpdateEventDto {
   @IsOptional()
   @IsDateString()
   date?: string;
+
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
 
   @IsOptional()
   @IsString()
@@ -31,8 +35,24 @@ export class UpdateEventDto {
   imageUrl?: string;
 
   @IsOptional()
+  @IsString()
+  documentUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  prizePool?: string;
+
+  @IsOptional()
   @IsEnum(EventType)
   eventType?: EventType;
+
+  @IsOptional()
+  @IsEnum(EventFormat)
+  eventFormat?: EventFormat;
 
   @IsOptional()
   @IsEnum(EventLevel)

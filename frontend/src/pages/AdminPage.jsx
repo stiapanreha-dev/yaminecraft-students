@@ -10,8 +10,9 @@ import { HomeworkForm } from '@/components/admin/HomeworkForm';
 import { ProjectForm } from '@/components/admin/ProjectForm';
 import { ArticleForm } from '@/components/admin/ArticleForm';
 import { MaterialForm } from '@/components/admin/MaterialForm';
-import { Users, Award, Calendar, Plus, Pencil, Trash2, ClipboardList, FolderOpen, BookOpen, FileText, UserCheck, UserX, Eye } from 'lucide-react';
-import { usersApi, achievementsApi, eventsApi, homeworkApi, projectsApi, articlesApi, materialsApi } from '@/services/api';
+import { BannerForm } from '@/components/admin/BannerForm';
+import { Users, Award, Calendar, Plus, Pencil, Trash2, ClipboardList, FolderOpen, BookOpen, FileText, UserCheck, UserX, Eye, Image, FileEdit } from 'lucide-react';
+import { usersApi, achievementsApi, eventsApi, homeworkApi, projectsApi, articlesApi, materialsApi, bannersApi, pagesApi } from '@/services/api';
 import { toast } from 'react-toastify';
 import { formatDateLong } from '@/utils/dateFormatter';
 
@@ -25,11 +26,14 @@ export const AdminPage = () => {
   const [projects, setProjects] = useState([]);
   const [articles, setArticles] = useState([]);
   const [materials, setMaterials] = useState([]);
+  const [banners, setBanners] = useState([]);
   const [pendingTeachers, setPendingTeachers] = useState([]);
+  const [aboutPage, setAboutPage] = useState({ title: 'О нас', content: '' });
   const [loading, setLoading] = useState(true);
 
   // Dialog states
   const [achievementDialogOpen, setAchievementDialogOpen] = useState(false);
+  const [bannerDialogOpen, setBannerDialogOpen] = useState(false);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [homeworkDialogOpen, setHomeworkDialogOpen] = useState(false);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
@@ -42,6 +46,7 @@ export const AdminPage = () => {
   const [editingProject, setEditingProject] = useState(null);
   const [editingArticle, setEditingArticle] = useState(null);
   const [editingMaterial, setEditingMaterial] = useState(null);
+  const [editingBanner, setEditingBanner] = useState(null);
   const [viewingHomeworkId, setViewingHomeworkId] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [gradeModalOpen, setGradeModalOpen] = useState(false);
@@ -123,6 +128,26 @@ export const AdminPage = () => {
     }
   }, []);
 
+  const fetchBanners = useCallback(async () => {
+    try {
+      const response = await bannersApi.getAll();
+      setBanners(response.data);
+    } catch (error) {
+      console.error('Error fetching banners:', error);
+    }
+  }, []);
+
+  const fetchAboutPage = useCallback(async () => {
+    try {
+      const response = await pagesApi.getBySlug('about');
+      setAboutPage(response.data);
+    } catch (error) {
+      if (error.response?.status !== 404) {
+        console.error('Error fetching about page:', error);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (authLoading) return;
 
@@ -139,7 +164,9 @@ export const AdminPage = () => {
     fetchArticles();
     fetchMaterials();
     fetchPendingTeachers();
-  }, [authLoading, user?.id, user?.role, fetchUsers, fetchAchievements, fetchEvents, fetchHomework, fetchProjects, fetchArticles, fetchMaterials, fetchPendingTeachers, navigate]);
+    fetchBanners();
+    fetchAboutPage();
+  }, [authLoading, user?.id, user?.role, fetchUsers, fetchAchievements, fetchEvents, fetchHomework, fetchProjects, fetchArticles, fetchMaterials, fetchPendingTeachers, fetchBanners, fetchAboutPage, navigate]);
 
   const handleChangeRole = async (userId, newRole) => {
     try {
@@ -216,6 +243,7 @@ export const AdminPage = () => {
       const eventData = {
         ...data,
         date: data.date instanceof Date ? data.date.toISOString() : data.date,
+        endDate: data.endDate instanceof Date ? data.endDate.toISOString() : data.endDate || null,
       };
 
       if (editingEvent) {
@@ -253,7 +281,8 @@ export const AdminPage = () => {
   const handleEditEvent = (event) => {
     const formData = {
       ...event,
-      date: new Date(event.date)
+      date: new Date(event.date),
+      endDate: event.endDate ? new Date(event.endDate) : null,
     };
     setEditingEvent(formData);
     setEventDialogOpen(true);
@@ -474,6 +503,58 @@ export const AdminPage = () => {
     return variants[status] || 'secondary';
   };
 
+  // Banner handlers
+  const handleCreateBanner = async (data) => {
+    try {
+      setSubmitLoading(true);
+      if (editingBanner) {
+        await bannersApi.update(editingBanner.id, data);
+        toast.success('Баннер обновлён');
+      } else {
+        await bannersApi.create(data);
+        toast.success('Баннер создан');
+      }
+      setBannerDialogOpen(false);
+      setEditingBanner(null);
+      fetchBanners();
+    } catch (error) {
+      console.error('Error with banner:', error);
+      toast.error(editingBanner ? 'Ошибка обновления баннера' : 'Ошибка создания баннера');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const handleDeleteBanner = async (bannerId) => {
+    if (!confirm('Удалить баннер?')) return;
+    try {
+      await bannersApi.delete(bannerId);
+      toast.success('Баннер удалён');
+      fetchBanners();
+    } catch (error) {
+      console.error('Error deleting banner:', error);
+      toast.error('Ошибка удаления баннера');
+    }
+  };
+
+  const handleEditBanner = (banner) => {
+    setEditingBanner(banner);
+    setBannerDialogOpen(true);
+  };
+
+  const handleSaveAboutPage = async () => {
+    try {
+      setSubmitLoading(true);
+      await pagesApi.upsert('about', aboutPage);
+      toast.success('Страница "О нас" сохранена');
+    } catch (error) {
+      console.error('Error saving about page:', error);
+      toast.error('Ошибка сохранения страницы');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
   console.log('AdminPage render:', { authLoading, user, userRole: user?.role });
 
   if (authLoading) {
@@ -590,6 +671,18 @@ export const AdminPage = () => {
             <Nav.Link eventKey="homework" className="d-flex align-items-center">
               <ClipboardList style={{ width: '16px', height: '16px' }} className="me-2" />
               Домашние задания
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="banners" className="d-flex align-items-center">
+              <Image style={{ width: '16px', height: '16px' }} className="me-2" />
+              Баннеры
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="pages" className="d-flex align-items-center">
+              <FileEdit style={{ width: '16px', height: '16px' }} className="me-2" />
+              Страницы
             </Nav.Link>
           </Nav.Item>
         </Nav>
@@ -932,6 +1025,87 @@ export const AdminPage = () => {
             </Card>
           </Tab.Pane>
 
+          {/* Banners Tab */}
+          <Tab.Pane eventKey="banners">
+            <div className="d-flex justify-content-end mb-3">
+              <Button onClick={() => setBannerDialogOpen(true)}>
+                <Plus style={{ width: '16px', height: '16px' }} className="me-2" />
+                Добавить баннер
+              </Button>
+            </div>
+            <Card>
+              <Card.Header>
+                <h5 className="mb-0">Управление баннерами ({banners.length})</h5>
+              </Card.Header>
+              <Card.Body>
+                {banners.length === 0 ? (
+                  <p className="text-secondary text-center py-4">
+                    Нет созданных баннеров
+                  </p>
+                ) : (
+                  <div className="d-flex flex-column gap-3">
+                    {banners.map((banner) => (
+                      <div key={banner.id} className="border rounded p-3">
+                        <div className="d-flex justify-content-between align-items-start">
+                          <div className="flex-grow-1 d-flex gap-3">
+                            {banner.imageUrl && (
+                              <img
+                                src={banner.imageUrl}
+                                alt={banner.title}
+                                style={{
+                                  width: '120px',
+                                  height: '80px',
+                                  objectFit: 'cover',
+                                  borderRadius: '8px'
+                                }}
+                              />
+                            )}
+                            <div>
+                              <div className="d-flex align-items-center gap-2 mb-1">
+                                <h6 className="fw-semibold mb-0">{banner.title}</h6>
+                                <Badge bg={banner.isActive ? 'success' : 'secondary'}>
+                                  {banner.isActive ? 'Активен' : 'Скрыт'}
+                                </Badge>
+                              </div>
+                              {banner.subtitle && (
+                                <p className="text-secondary small mb-1">{banner.subtitle}</p>
+                              )}
+                              <div className="d-flex flex-wrap gap-2 small text-secondary">
+                                <span>Порядок: {banner.order}</span>
+                                {banner.buttonText && (
+                                  <>
+                                    <span>•</span>
+                                    <span>Кнопка: {banner.buttonText}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="d-flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditBanner(banner)}
+                            >
+                              <Pencil style={{ width: '16px', height: '16px' }} />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteBanner(banner.id)}
+                            >
+                              <Trash2 style={{ width: '16px', height: '16px' }} className="text-danger" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card.Body>
+            </Card>
+          </Tab.Pane>
+
           {/* Homework Tab */}
           <Tab.Pane eventKey="homework">
             <div className="d-flex justify-content-end mb-3">
@@ -1081,6 +1255,45 @@ export const AdminPage = () => {
                 </Card.Body>
               </Card>
             )}
+          </Tab.Pane>
+
+          {/* Pages Tab */}
+          <Tab.Pane eventKey="pages">
+            <Card>
+              <Card.Header>
+                <h5 className="mb-0">Редактирование страницы "О нас"</h5>
+              </Card.Header>
+              <Card.Body>
+                <div className="mb-3">
+                  <label className="form-label">Заголовок</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={aboutPage.title}
+                    onChange={(e) => setAboutPage({ ...aboutPage, title: e.target.value })}
+                    placeholder="Заголовок страницы"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Содержимое (HTML)</label>
+                  <textarea
+                    className="form-control"
+                    rows="15"
+                    value={aboutPage.content}
+                    onChange={(e) => setAboutPage({ ...aboutPage, content: e.target.value })}
+                    placeholder="<h2>Наша миссия</h2><p>Текст...</p>"
+                  />
+                  <small className="text-muted">
+                    Используйте HTML-теги для форматирования: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt; и др.
+                  </small>
+                </div>
+                <div className="d-flex justify-content-end">
+                  <Button onClick={handleSaveAboutPage} disabled={submitLoading}>
+                    {submitLoading ? 'Сохранение...' : 'Сохранить страницу'}
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
           </Tab.Pane>
         </Tab.Content>
       </Tab.Container>
@@ -1238,6 +1451,32 @@ export const AdminPage = () => {
             onCancel={() => {
               setGradeModalOpen(false);
               setGradingSubmission(null);
+            }}
+            loading={submitLoading}
+          />
+        </Modal.Body>
+      </Modal>
+
+      {/* Banner Modal */}
+      <Modal
+        show={bannerDialogOpen}
+        onHide={() => {
+          setBannerDialogOpen(false);
+          setEditingBanner(null);
+        }}
+        size="lg"
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>{editingBanner ? 'Редактировать баннер' : 'Новый баннер'}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <BannerForm
+            initialData={editingBanner}
+            onSubmit={handleCreateBanner}
+            onCancel={() => {
+              setBannerDialogOpen(false);
+              setEditingBanner(null);
             }}
             loading={submitLoading}
           />

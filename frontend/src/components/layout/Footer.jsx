@@ -19,13 +19,13 @@ export const Footer = () => {
   };
 
   return (
-    <footer className="border-top bg-light mt-auto">
-      <Container className="py-4">
+    <footer className="mt-auto" style={{ backgroundColor: 'var(--bs-dark)' }}>
+      <Container className="py-5">
         <Row className="g-4">
           {/* About Section */}
           <Col xs={12} md={4}>
-            <h5 className="fw-semibold mb-3">Анкеты учеников</h5>
-            <p className="text-secondary small mb-0">
+            <h5 className="fw-semibold mb-3 text-white">Анкеты учеников</h5>
+            <p className="small mb-0" style={{ color: 'rgba(255,255,255,0.7)' }}>
               Платформа для отслеживания достижений учеников и рейтинговой системы.
               Мотивируем к развитию и успеху!
             </p>
@@ -33,13 +33,14 @@ export const Footer = () => {
 
           {/* Navigation Links */}
           <Col xs={12} md={4}>
-            <h5 className="fw-semibold mb-3">Навигация</h5>
+            <h5 className="fw-semibold mb-3 text-white">Навигация</h5>
             <ul className="list-unstyled mb-0">
               {footerLinks.navigation.map((link) => (
                 <li key={link.to} className="mb-2">
                   <Link
                     to={link.to}
-                    className="text-secondary text-decoration-none small hover-primary"
+                    className="text-decoration-none small"
+                    style={{ color: 'rgba(255,255,255,0.7)' }}
                   >
                     {link.label}
                   </Link>
@@ -50,7 +51,7 @@ export const Footer = () => {
 
           {/* Social Links */}
           <Col xs={12} md={4}>
-            <h5 className="fw-semibold mb-3">Контакты</h5>
+            <h5 className="fw-semibold mb-3 text-white">Контакты</h5>
             <div className="d-flex gap-3">
               {footerLinks.social.map((link) => {
                 const Icon = link.icon;
@@ -60,7 +61,7 @@ export const Footer = () => {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-secondary"
+                    style={{ color: 'rgba(255,255,255,0.7)' }}
                     aria-label={link.label}
                   >
                     <Icon style={{ width: '20px', height: '20px' }} />
@@ -71,18 +72,18 @@ export const Footer = () => {
           </Col>
         </Row>
 
-        <hr className="my-4" />
+        <hr className="my-4" style={{ borderColor: 'rgba(255,255,255,0.2)' }} />
 
         {/* Bottom Bar */}
         <Row className="align-items-center">
           <Col xs={12} sm={6} className="text-center text-sm-start mb-2 mb-sm-0">
-            <p className="text-secondary small mb-0">
+            <p className="small mb-0" style={{ color: 'rgba(255,255,255,0.5)' }}>
               © {currentYear} Анкеты учеников. Все права защищены.
             </p>
           </Col>
           <Col xs={12} sm={6} className="text-center text-sm-end">
-            <p className="text-secondary small mb-0 d-flex align-items-center justify-content-center justify-content-sm-end">
-              Сделано с <Heart className="mx-1 text-danger" style={{ width: '16px', height: '16px' }} /> для наших учеников
+            <p className="small mb-0 d-flex align-items-center justify-content-center justify-content-sm-end" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              Сделано с <Heart className="mx-1" style={{ width: '16px', height: '16px', color: 'var(--bs-accent)' }} /> для наших учеников
             </p>
           </Col>
         </Row>

@@ -32,8 +32,9 @@ export const Header = () => {
   const allNavLinks = [
     { to: '/', label: 'Главная', icon: Home },
     { to: '/events', label: 'Мероприятия', icon: Calendar },
-    { to: '/blog', label: 'Блог', icon: BookOpen },
-    { to: '/rating', label: 'Рейтинг', icon: Trophy },
+    { to: '/blog', label: 'Наши проекты', icon: BookOpen },
+    { to: '/rating', label: 'Областной рейтинг', icon: Trophy },
+    { to: '/about', label: 'О нас', icon: Info },
     { to: '/materials', label: 'Педагогам', icon: FileText, teacherOnly: true },
   ];
 
@@ -57,8 +58,8 @@ export const Header = () => {
       expand="md"
       expanded={expanded}
       onToggle={setExpanded}
-      className="sticky-top bg-white border-bottom shadow-sm"
-      style={{ backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255,255,255,0.95)' }}
+      className="sticky-top"
+      style={{ backgroundColor: 'var(--bs-primary)' }}
     >
       <Container>
         {/* Logo */}
@@ -68,7 +69,7 @@ export const Header = () => {
             style={{
               width: '32px',
               height: '32px',
-              backgroundColor: 'var(--bs-primary)'
+              backgroundColor: 'rgba(255,255,255,0.2)'
             }}
           >
             <Trophy style={{ width: '20px', height: '20px', color: 'white' }} />
@@ -76,24 +77,30 @@ export const Header = () => {
         </Navbar.Brand>
 
         {/* Mobile Toggle */}
-        <Navbar.Toggle aria-controls="main-navbar" className="border-0">
+        <Navbar.Toggle aria-controls="main-navbar" className="border-0" style={{ color: 'white' }}>
           {expanded ? (
-            <X style={{ width: '24px', height: '24px' }} />
+            <X style={{ width: '24px', height: '24px', color: 'white' }} />
           ) : (
-            <Menu style={{ width: '24px', height: '24px' }} />
+            <Menu style={{ width: '24px', height: '24px', color: 'white' }} />
           )}
         </Navbar.Toggle>
 
         <Navbar.Collapse id="main-navbar">
           {/* Desktop Navigation */}
-          <Nav className="me-auto">
+          <Nav className="me-auto gap-2 flex-nowrap">
             {navLinks.map((link) => (
               <Nav.Link
                 key={link.to}
                 as={Link}
                 to={link.to}
                 onClick={() => setExpanded(false)}
-                className="text-secondary fw-medium"
+                className="nav-link-accent fw-medium px-2 py-2 text-nowrap btn"
+                style={{
+                  backgroundColor: 'var(--bs-accent)',
+                  color: 'var(--bs-dark)',
+                  transition: 'all 0.2s ease',
+                  fontSize: '0.875rem'
+                }}
               >
                 <span className="d-md-none me-2">
                   <link.icon style={{ width: '16px', height: '16px' }} />
@@ -171,12 +178,40 @@ export const Header = () => {
                 </Dropdown.Menu>
               </Dropdown>
             ) : (
-              <Button
-                onClick={() => { navigate('/login'); setExpanded(false); }}
-                size="sm"
-              >
-                Войти
-              </Button>
+              <Nav className="gap-2 flex-column flex-md-row w-100 w-md-auto mt-3 mt-md-0">
+                <Nav.Link
+                  as={Link}
+                  to="/login"
+                  onClick={() => setExpanded(false)}
+                  className="nav-link-accent fw-medium px-3 py-2 btn"
+                  style={{
+                    backgroundColor: 'var(--bs-accent)',
+                    color: 'var(--bs-dark)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <span className="d-md-none me-2">
+                    <LogOut style={{ width: '16px', height: '16px', transform: 'rotate(180deg)' }} />
+                  </span>
+                  Войти
+                </Nav.Link>
+                <Nav.Link
+                  as={Link}
+                  to="/login?tab=register"
+                  onClick={() => setExpanded(false)}
+                  className="nav-link-accent fw-medium px-3 py-2 btn"
+                  style={{
+                    backgroundColor: 'var(--bs-accent)',
+                    color: 'var(--bs-dark)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <span className="d-md-none me-2">
+                    <User style={{ width: '16px', height: '16px' }} />
+                  </span>
+                  Регистрация
+                </Nav.Link>
+              </Nav>
             )}
           </Nav>
         </Navbar.Collapse>

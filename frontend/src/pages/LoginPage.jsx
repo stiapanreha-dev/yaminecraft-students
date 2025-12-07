@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, Form, Nav, Tab, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import { Button } from '@/components/ui/button';
@@ -14,8 +14,12 @@ const ROLE_OPTIONS = [
 
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signIn, signUp } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  // Определяем начальную вкладку из URL параметра
+  const initialTab = searchParams.get('tab') === 'register' ? 'register' : 'login';
 
   // Login state
   const [loginEmail, setLoginEmail] = useState('');
@@ -143,7 +147,7 @@ export const LoginPage = () => {
         </div>
 
         {/* Tabs */}
-        <Tab.Container defaultActiveKey="login">
+        <Tab.Container defaultActiveKey={initialTab}>
           <Nav variant="pills" className="nav-fill mb-3">
             <Nav.Item>
               <Nav.Link eventKey="login">Вход</Nav.Link>

@@ -6,7 +6,7 @@ import { Trophy, Calendar, Users, TrendingUp, Bot, BookOpen, GraduationCap, Arro
 import { useStudents } from '@/hooks/useStudents';
 import { StudentCard } from '@/components/student/StudentCard';
 import { useAuth } from '@/hooks/useAuth';
-import { usersApi, articlesApi, eventsApi } from '@/services/api';
+import { usersApi, articlesApi, eventsApi, bannersApi } from '@/services/api';
 import { formatDateLong, formatRelativeDate } from '@/utils/dateFormatter';
 
 // Определяет, нужен ли тёмный текст на данном фоне
@@ -26,14 +26,16 @@ export const HomePage = () => {
   const [stats, setStats] = useState({ students: 0, achievements: 0, events: 0 });
   const [latestArticles, setLatestArticles] = useState([]);
   const [upcomingEvent, setUpcomingEvent] = useState(null);
+  const [activeBanner, setActiveBanner] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsRes, articlesRes, eventsRes] = await Promise.all([
+        const [statsRes, articlesRes, eventsRes, bannersRes] = await Promise.all([
           usersApi.getStats(),
           articlesApi.getLatest(2),
-          eventsApi.getAll()
+          eventsApi.getAll(),
+          bannersApi.getActive()
         ]);
         setStats(statsRes.data);
         setLatestArticles(articlesRes.data);
@@ -45,6 +47,11 @@ export const HomePage = () => {
           .filter(e => new Date(e.date) >= now)
           .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
         setUpcomingEvent(upcoming);
+
+        // Первый активный баннер (уже отсортирован по order)
+        if (bannersRes.data.length > 0) {
+          setActiveBanner(bannersRes.data[0]);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -68,7 +75,7 @@ export const HomePage = () => {
     },
     {
       icon: BookOpen,
-      title: 'Блог проектов',
+      title: 'Наши проекты',
       description: 'Статьи о наших проектах и достижениях в робототехнике',
       link: '/blog'
     },
@@ -89,11 +96,12 @@ export const HomePage = () => {
 
   return (
     <div className="d-flex flex-column gap-5">
-      {/* Hero Section with Background Image - Full Width */}
+      {/* Hero Section - Full Width */}
       <section
         className="position-relative text-center text-white overflow-hidden"
         style={{
-          backgroundImage: 'url(/hero-robot.jpg)',
+          backgroundImage: activeBanner?.imageUrl ? `url(${activeBanner.imageUrl})` : 'none',
+          backgroundColor: activeBanner?.imageUrl ? 'transparent' : (activeBanner?.backgroundColor || '#313642'),
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           minHeight: '450px',
@@ -103,11 +111,13 @@ export const HomePage = () => {
           width: '100vw',
         }}
       >
-        {/* Dark overlay */}
-        <div
-          className="position-absolute top-0 start-0 w-100 h-100"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-        />
+        {/* Dark overlay - only if has background image */}
+        {activeBanner?.imageUrl && (
+          <div
+            className="position-absolute top-0 start-0 w-100 h-100"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          />
+        )}
 
         {/* Content */}
         <div className="position-relative py-5 px-4 d-flex flex-column align-items-center justify-content-center h-100" style={{ zIndex: 1, minHeight: '450px' }}>
@@ -122,17 +132,25 @@ export const HomePage = () => {
             <Bot size={48} className="text-dark" />
           </div>
           <h1 className="display-4 fw-bold mb-3">
-            Школа робототехники
+            {activeBanner?.title || 'Школа робототехники'}
           </h1>
           <p className="lead mb-4" style={{ maxWidth: '600px', margin: '0 auto', opacity: 0.9 }}>
-            Учимся создавать роботов, участвуем в конкурсах и развиваем навыки будущего
+            {activeBanner?.subtitle || 'Учимся создавать роботов, участвуем в конкурсах и развиваем навыки будущего'}
           </p>
           <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center">
-            <Link to="/events">
-              <Button size="lg" variant="accent">
-                Записаться на занятие
-              </Button>
-            </Link>
+            {activeBanner?.buttonText && activeBanner?.buttonLink ? (
+              <Link to={activeBanner.buttonLink}>
+                <Button size="lg" variant="accent">
+                  {activeBanner.buttonText}
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/events">
+                <Button size="lg" variant="accent">
+                  Записаться на занятие
+                </Button>
+              </Link>
+            )}
             <Link to="/blog">
               <Button size="lg" variant="outline" className="text-white border-white">
                 Наши проекты
@@ -147,10 +165,10 @@ export const HomePage = () => {
         <Row className="g-3">
           {statsDisplay.map((stat, index) => (
             <Col key={index} xs={6} md={3}>
-              <Card className="h-100 text-center">
+              <Card className="h-100 text-center" style={{ backgroundColor: 'var(--bs-primary)', border: 'none' }}>
                 <Card.Body className="py-4">
-                  <div className="h2 fw-bold mb-2" style={{ color: 'var(--bs-primary)' }}>{stat.value}</div>
-                  <p className="text-secondary small mb-0">{stat.label}</p>
+                  <div className="h2 fw-bold mb-2 text-white">{stat.value}</div>
+                  <p className="small mb-0" style={{ color: 'rgba(255,255,255,0.85)' }}>{stat.label}</p>
                 </Card.Body>
               </Card>
             </Col>
@@ -280,20 +298,25 @@ export const HomePage = () => {
             const Icon = feature.icon;
             return (
               <Col key={index} xs={12} sm={6} lg={3}>
-                <Card className="h-100 shadow-sm text-center" as={Link} to={feature.link} style={{ textDecoration: 'none' }}>
+                <Card
+                  className="h-100 shadow-sm text-center"
+                  as={Link}
+                  to={feature.link}
+                  style={{ textDecoration: 'none', backgroundColor: 'var(--bs-primary)', border: 'none' }}
+                >
                   <Card.Body className="py-4">
                     <div
                       className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
                       style={{
                         width: '56px',
                         height: '56px',
-                        backgroundColor: 'rgba(var(--bs-primary-rgb), 0.1)'
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)'
                       }}
                     >
-                      <Icon size={28} className="text-primary" />
+                      <Icon size={28} className="text-white" />
                     </div>
-                    <h5 className="fw-semibold text-dark mb-2">{feature.title}</h5>
-                    <p className="text-secondary small mb-0">{feature.description}</p>
+                    <h5 className="fw-semibold text-white mb-2">{feature.title}</h5>
+                    <p className="small mb-0" style={{ color: 'rgba(255,255,255,0.85)' }}>{feature.description}</p>
                   </Card.Body>
                 </Card>
               </Col>
@@ -302,59 +325,61 @@ export const HomePage = () => {
         </Row>
       </section>
 
-      {/* Students Section */}
-      <section>
-        <div className="text-center mb-4">
-          <h2 className="h2 fw-bold mb-2">Наши ученики</h2>
-          <p className="text-secondary">
-            Познакомьтесь с участниками платформы
-          </p>
-        </div>
+      {/* Students Section - Primary */}
+      <section className="section-primary">
+        <div className="container">
+          <div className="text-center mb-4">
+            <h2 className="h2 fw-bold mb-2">Наши ученики</h2>
+            <p>
+              Познакомьтесь с участниками платформы
+            </p>
+          </div>
 
-        {loading ? (
-          <Row className="g-4">
-            {[...Array(6)].map((_, i) => (
-              <Col key={i} xs={12} md={6} lg={4}>
-                <Card className="h-100">
-                  <Card.Body style={{ height: '192px' }} className="placeholder-glow">
-                    <span className="placeholder w-100 h-100 rounded"></span>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        ) : students.length > 0 ? (
-          <>
-            <Row className="g-4 mb-4">
-              {students.map((student) => (
-                <Col key={student.id} xs={12} md={6} lg={4}>
-                  <StudentCard student={student} />
+          {loading ? (
+            <Row className="g-4">
+              {[...Array(6)].map((_, i) => (
+                <Col key={i} xs={12} md={6} lg={4}>
+                  <Card className="h-100">
+                    <Card.Body style={{ height: '192px' }} className="placeholder-glow">
+                      <span className="placeholder w-100 h-100 rounded"></span>
+                    </Card.Body>
+                  </Card>
                 </Col>
               ))}
             </Row>
-            <div className="text-center">
-              <Link to="/rating">
-                <Button variant="outline" size="lg">
-                  Посмотреть всех учеников →
-                </Button>
-              </Link>
+          ) : students.length > 0 ? (
+            <>
+              <Row className="g-4 mb-4">
+                {students.map((student) => (
+                  <Col key={student.id} xs={12} md={6} lg={4}>
+                    <StudentCard student={student} />
+                  </Col>
+                ))}
+              </Row>
+              <div className="text-center">
+                <Link to="/rating">
+                  <Button variant="accent" size="lg">
+                    Посмотреть всех учеников →
+                  </Button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-5">
+              <Users size={48} className="mb-3 mx-auto d-block" style={{ opacity: 0.5 }} />
+              <p style={{ color: 'rgba(255,255,255,0.7)' }}>
+                Пока нет зарегистрированных учеников
+              </p>
+              {!isAuthenticated && (
+                <Link to="/login">
+                  <Button variant="accent" className="mt-3">
+                    Зарегистрироваться
+                  </Button>
+                </Link>
+              )}
             </div>
-          </>
-        ) : (
-          <div className="text-center py-5">
-            <Users size={48} className="text-secondary mb-3 mx-auto d-block" />
-            <p className="text-secondary">
-              Пока нет зарегистрированных учеников
-            </p>
-            {!isAuthenticated && (
-              <Link to="/login">
-                <Button className="mt-3">
-                  Зарегистрироваться
-                </Button>
-              </Link>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </section>
 
       {/* CTA Section */}

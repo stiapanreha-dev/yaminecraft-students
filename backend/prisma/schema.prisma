@@ -48,6 +48,12 @@ enum EventLevel {
   INTERNATIONAL
 }
 
+enum EventFormat {
+  OFFLINE
+  ONLINE
+  HYBRID
+}
+
 enum RegistrationStatus {
   REGISTERED
   CONFIRMED
@@ -136,38 +142,44 @@ model Rating {
 // ==================== EVENTS ====================
 
 model Event {
-  id              String      @id @default(uuid())
+  id              String       @id @default(uuid())
   title           String
   description     String?
   date            DateTime
+  endDate         DateTime?
   location        String?
   address         String?
   organizer       String?
   imageUrl        String?
-  eventType       EventType   @default(OTHER)
+  documentUrl     String?
+  phone           String?
+  prizePool       String?
+  eventType       EventType    @default(OTHER)
+  eventFormat     EventFormat  @default(OFFLINE)
   level           EventLevel?
   maxParticipants Int?
-  registrationOpen Boolean    @default(true)
+  registrationOpen Boolean     @default(true)
 
   createdById     String
-  createdBy       User        @relation("EventCreator", fields: [createdById], references: [id])
+  createdBy       User         @relation("EventCreator", fields: [createdById], references: [id])
 
   registrations   EventRegistration[]
 
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   @@map("events")
 }
 
 model EventRegistration {
-  id        String             @id @default(uuid())
-  eventId   String
-  event     Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status    RegistrationStatus @default(REGISTERED)
-  createdAt DateTime           @default(now())
+  id           String             @id @default(uuid())
+  eventId      String
+  event        Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status       RegistrationStatus @default(REGISTERED)
+  organization String?            // Образовательная организация участника
+  createdAt    DateTime           @default(now())
 
   @@unique([eventId, userId])
   @@map("event_registrations")
@@ -317,4 +329,37 @@ model MaterialFile {
   createdAt   DateTime @default(now())
 
   @@map("material_files")
+}
+
+// ==================== PAGES ====================
+
+model Page {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  title     String
+  content   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("pages")
+}
+
+// ==================== BANNERS ====================
+
+model Banner {
+  id              String   @id @default(uuid())
+  title           String
+  subtitle        String?
+  imageUrl        String?
+  backgroundColor String?  @default("#313642")
+  buttonText      String?
+  buttonLink      String?
+  isActive        Boolean  @default(true)
+  order           Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("banners")
 }

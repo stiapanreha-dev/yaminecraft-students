@@ -74,13 +74,15 @@ export const RatingPage = () => {
   };
 
   return (
-    <div className="d-flex flex-column gap-4 py-4">
+    <div className="d-flex flex-column gap-4">
       {/* Header */}
-      <div>
-        <h1 className="display-6 fw-bold mb-2">Рейтинг учеников</h1>
-        <p className="text-secondary">
-          Топ учеников по достижениям и баллам
-        </p>
+      <div className="page-header">
+        <div className="container">
+          <h1 className="display-6 fw-bold mb-2">Рейтинг учеников</h1>
+          <p>
+            Топ учеников по достижениям и баллам
+          </p>
+        </div>
       </div>
 
       {/* Filters */}

@@ -49,10 +49,14 @@ export const bioSchema = z
  * Схема валидации для URL
  */
 export const urlSchema = z
-  .string()
-  .url('Некорректный URL')
+  .union([
+    z.string().url('Некорректный URL'),
+    z.literal(''),
+    z.null(),
+    z.undefined()
+  ])
   .optional()
-  .or(z.literal(''));
+  .nullable();
 
 /**
  * Схема валидации для баллов
@@ -148,6 +152,9 @@ export const eventSchema = z.object({
     required_error: 'Дата обязательна',
     invalid_type_error: 'Некорректная дата'
   }),
+  endDate: z.date({
+    invalid_type_error: 'Некорректная дата'
+  }).optional().nullable(),
   location: z
     .string()
     .min(3, 'Минимум 3 символа')
@@ -162,10 +169,16 @@ export const eventSchema = z.object({
     .max(100, 'Максимум 100 символов')
     .optional()
     .or(z.literal('')),
-  imageUrl: urlSchema,
+  imageUrl: z.string().optional().nullable().or(z.literal('')),
+  documentUrl: z.string().optional().nullable().or(z.literal('')),
+  phone: z.string().optional().nullable().or(z.literal('')),
+  prizePool: z.string().optional().nullable().or(z.literal('')),
   eventType: z.enum(['MASTER_CLASS', 'COMPETITION', 'FREE_LESSON', 'WORKSHOP', 'OTHER'], {
     errorMap: () => ({ message: 'Выберите тип мероприятия' })
   }),
+  eventFormat: z.enum(['OFFLINE', 'ONLINE', 'HYBRID'], {
+    errorMap: () => ({ message: 'Выберите формат мероприятия' })
+  }).optional().default('OFFLINE'),
   level: z
     .enum(['SCHOOL', 'DISTRICT', 'CITY', 'REGIONAL', 'NATIONAL', 'INTERNATIONAL', ''])
     .optional()

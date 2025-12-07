@@ -3,6 +3,7 @@ import { Role } from '@prisma/client';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { RegisterEventDto } from './dto/register-event.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -53,8 +54,8 @@ export class EventsController {
 
   @Post(':id/register')
   @UseGuards(JwtAuthGuard)
-  register(@Param('id') id: string, @CurrentUser() user: any) {
-    return this.eventsService.register(id, user.id);
+  register(@Param('id') id: string, @Body() dto: RegisterEventDto, @CurrentUser() user: any) {
+    return this.eventsService.register(id, user.id, dto.organization);
   }
 
   @Delete(':id/register')
@@ -64,8 +65,6 @@ export class EventsController {
   }
 
   @Get(':id/registrations')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
   getRegistrations(@Param('id') id: string) {
     return this.eventsService.getRegistrations(id);
   }

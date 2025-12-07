@@ -98,7 +98,7 @@ export const eventsApi = {
   create: (data) => api.post('/events', data),
   update: (id, data) => api.patch(`/events/${id}`, data),
   delete: (id) => api.delete(`/events/${id}`),
-  register: (id) => api.post(`/events/${id}/register`),
+  register: (id, data = {}) => api.post(`/events/${id}/register`, data),
   unregister: (id) => api.delete(`/events/${id}/register`),
   getRegistrations: (id) => api.get(`/events/${id}/registrations`),
 };
@@ -149,6 +149,23 @@ export const materialsApi = {
   update: (id, data) => api.patch(`/materials/${id}`, data),
   delete: (id) => api.delete(`/materials/${id}`),
   download: (id) => api.post(`/materials/${id}/download`),
+};
+
+// Banners
+export const bannersApi = {
+  getAll: () => api.get('/banners'),
+  getActive: () => api.get('/banners/active'),
+  getById: (id) => api.get(`/banners/${id}`),
+  create: (data) => api.post('/banners', data),
+  update: (id, data) => api.put(`/banners/${id}`, data),
+  delete: (id) => api.delete(`/banners/${id}`),
+};
+
+// Pages
+export const pagesApi = {
+  getAll: () => api.get('/pages'),
+  getBySlug: (slug) => api.get(`/pages/${slug}`),
+  upsert: (slug, data) => api.put(`/pages/${slug}`, data),
 };
 
 // Uploads
