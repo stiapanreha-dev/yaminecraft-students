@@ -11,6 +11,18 @@
 
 ## URLs
 
+### Production (сервер)
+
+| Сервис | URL |
+|--------|-----|
+| Frontend | https://robosaratov.ru |
+| Backend API | https://robosaratov.ru/api |
+| MinIO Console | https://minio.robosaratov.ru |
+| Admin | admin@example.com / admin123456 |
+| MinIO | minioadmin / minioadmin123 |
+
+### Development (локально)
+
 | Сервис | URL |
 |--------|-----|
 | Frontend | http://localhost:5173 |
@@ -139,9 +151,9 @@ yaminecraft/
 
 ### Типы мероприятий (EventType)
 
-- `MASTER_CLASS` - Мастер-класс
+- `MASTER_CLASS` - Мастер-класс (запись по телефону)
 - `COMPETITION` - Соревнование
-- `FREE_LESSON` - Открытый урок
+- `FREE_LESSON` - Открытый урок (запись по телефону)
 - `WORKSHOP` - Воркшоп
 - `OTHER` - Другое
 
@@ -154,10 +166,17 @@ yaminecraft/
 - `NATIONAL` - Национальный
 - `INTERNATIONAL` - Международный
 
+### Дополнительные поля мероприятий
+
+- `phone` - Телефон для записи (для мастер-классов и бесплатных занятий)
+- `prizePool` - Призовой фонд (отображается жёлтой плашкой)
+- `documentUrl` - URL положения о мероприятии (PDF/DOC)
+
 ### Регистрация на мероприятия
 
 - `EventRegistration` - связь пользователя с мероприятием
 - Статусы: `REGISTERED`, `CONFIRMED`, `CANCELLED`, `ATTENDED`
+- Для MASTER_CLASS и FREE_LESSON показывается модальное окно с телефоном вместо онлайн-записи
 
 ## Категории достижений
 
