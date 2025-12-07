@@ -1,14 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:3001'],
+    origin: true,
     credentials: true,
   });
 
@@ -18,11 +16,6 @@ async function bootstrap() {
       transform: true,
     }),
   );
-
-  // Serve static files from uploads directory
-  app.useStaticAssets(join(process.cwd(), 'uploads'), {
-    prefix: '/uploads/',
-  });
 
   app.setGlobalPrefix('api');
 

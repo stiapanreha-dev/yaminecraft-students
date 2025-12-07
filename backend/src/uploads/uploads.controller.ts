@@ -5,14 +5,13 @@ import {
   UploadedFile,
   UseGuards,
   BadRequestException,
-  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { memoryStorage } from 'multer';
 import { extname } from 'path';
 import { randomUUID } from 'crypto';
-import type { Request } from 'express';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { MinioService } from '../minio/minio.service';
 
 const imageFileFilter = (req: any, file: any, callback: any) => {
   if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
@@ -28,33 +27,30 @@ const documentFileFilter = (req: any, file: any, callback: any) => {
   callback(null, true);
 };
 
-const storage = diskStorage({
-  destination: './uploads',
-  filename: (req, file, callback) => {
-    const uniqueName = `${randomUUID()}${extname(file.originalname)}`;
-    callback(null, uniqueName);
-  },
-});
-
 @Controller('uploads')
 export class UploadsController {
+  constructor(private readonly minioService: MinioService) {}
+
   @Post('image')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage,
+      storage: memoryStorage(),
       fileFilter: imageFileFilter,
       limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     }),
   )
-  uploadImage(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
 
+    const filename = `${randomUUID()}${extname(file.originalname)}`;
+    const url = await this.minioService.uploadFile(file, filename);
+
     return {
-      url: `/uploads/${file.filename}`,
-      filename: file.filename,
+      url,
+      filename,
     };
   }
 
@@ -62,20 +58,23 @@ export class UploadsController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage,
+      storage: memoryStorage(),
       fileFilter: documentFileFilter,
       limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
     }),
   )
-  uploadFile(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
 
+    const filename = `${randomUUID()}${extname(file.originalname)}`;
+    const url = await this.minioService.uploadFile(file, filename);
+
     return {
-      url: `/uploads/${file.filename}`,
+      url,
       filename: file.originalname,
-      storedFilename: file.filename,
+      storedFilename: filename,
       size: file.size,
       mimeType: file.mimetype,
     };
